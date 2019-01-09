@@ -19,7 +19,8 @@ spike_clusters = readNPY(fullfile(fpath, 'spike_clusters.npy'));
 % - 3 = unsorted
 
 x = M44D1092;
-
+% in the case where single recording in two different sessions
+% x2 = M44D1076;
 
 
 [data, timestamps, info] = load_open_ephys_data(fullfile(fpath, 'all_channels.events'));
@@ -31,29 +32,46 @@ SU = find(Cgroups == 2);
 MU = find(Cgroups == 1);
 
 
-PreStim = 0.3; %s
-PostStim = 0.3; %s
+PreStim = 0.4; %s
+PostStim = 0.4; %s
 StimDur = x.stimulus_ch1(1,5)*1e-3;
 
 stim_info = x.data(find(x.data(:,3) == 1 & x.data(:,4) == -1),:); 
+
+% stim_info2 = x2.data(find(x2.data(:,3) == 1 & x2.data(:,4) == -1),:); 
+% stim_info2(:,1) = stim_info2(:,1)+ max(stim_info(:,1));
+% stim_info2(:,2) = stim_info2(:,2)+ 20;
+%
+% stim_info = [stim_info ; x2.data(find(x2.data(:,3) == 1 & x2.data(:,4) == -1),:)]; 
+%
 data_new = stim_info;
-stim_info_tags = x.data_tags;
+% data_new = [stim_info ; stim_info2];
+
+% stim_info_tags = x.data_tags;
 start_stim_times = timestamps(find(info.eventId ==1));
 end_stim_times = timestamps(find(info.eventId ==0));
-nreps = x.stimulus_ch1(4);
-TotalReps = max(x.stimulus_ch1(1))*nreps;
+nreps = x.stimulus_ch1(1,4);
+nStim = max(x.stimulus_ch1(:,1));
+
+%
+% nStim = nStim + max(x2.stimulus_ch1(:,1));
+%
+TotalReps = nStim*nreps;
 
 raster.stim = {};
 raster.rep = {};
 raster.spikes = {};
 spikes_pooled = {};
 spike_times = {};
+rate_stim = {};
+
 
 for id = 1:length(SU)
     raster.stim{id} = [];
     raster.rep{id} = [];
     raster.spikes{id} = [];
-    spikes_pooled{id} = [];   
+    spikes_pooled{id} = [];  
+    rate_stim{id} = [];
     spike_times{id} = spike_times_all(find(spike_clusters == Cids(SU(id))));
     for rep = 1:TotalReps
         spikes1 = spike_times{id}(find(spike_times{id}>=start_stim_times(rep)-PreStim & ...
@@ -63,6 +81,9 @@ for id = 1:length(SU)
         raster.stim{id} = [raster.stim{id} data_new(rep,1)*ones(size(spikes1))];
         raster.rep{id} = [raster.rep{id} data_new(rep,2)*ones(size(spikes1))];
         raster.spikes{id} = [raster.spikes{id} spikes1];
+        spikes2 = spike_times{id}(find(spike_times{id}>=start_stim_times(rep) & ...
+            spike_times{id}<=end_stim_times(rep))).';
+        rate_stim{id}(data_new(rep,1),data_new(rep,2)) = length(spikes2);
     end
 end
 
@@ -73,7 +94,7 @@ rasterMU.stim = [];
 rasterMU.rep = [];
 rasterMU.spikes = [];
 spike_timesMU = [];
-
+rate_stimMU =[];
 for id = 1:length(MU)
     spike_timesMU = spike_times_all(find(spike_clusters == Cids(MU(id))));
     for rep = 1:TotalReps
@@ -83,12 +104,71 @@ for id = 1:length(MU)
         rasterMU.stim = [rasterMU.stim data_new(rep,1)*ones(size(spikes))];
         rasterMU.rep = [rasterMU.rep data_new(rep,2)*ones(size(spikes))];
         rasterMU.spikes = [rasterMU.spikes spikes];
+        spikes2 = spike_timesMU(find(spike_timesMU >= start_stim_times(rep) & ...
+            spike_timesMU <= end_stim_times(rep))).';
+        rate_stimMU(data_new(rep,1),data_new(rep,2)) = length(spikes2);
     end
 end
 
+stim_label  = x.stimulus_ch1(:,8);
+
+SUrate = {};
+figure
+for id = 1:length(SU)
+    SUrate{id}.mean = mean(rate_stim{id}(:,1:14),2);
 
 
-        
+    SUrate{id}.error = std(rate_stim{id}(:,1:14),1,2)/400;
+    
+%     subplot(3,4,id)
+%     errorbar(2:2:50,SUrate{id}.mean(2:2:50),SUrate{id}.error(2:2:50))
+%     
+%     hold on
+%     errorbar(1:2:49,SUrate{id}.mean(1:2:49),SUrate{id}.error(1:2:49))
+%     
+    
+        xs = 1:25;
+    h =1.0;
+    for i = 1:25
+        ys1(i) = gaussian_kern_reg(xs(i),xs,SUrate{id}.mean(1:2:49).',h);
+        ys2(i) = gaussian_kern_reg(xs(i),xs,SUrate{id}.mean(2:2:50).',h);
+    end
+    subplot(3,4,id)
+    plot(1:2:49,ys1,'LineWidth',2);
+    
+    hold on
+    plot(2:2:50,ys2,'LineWidth',2);
+    legend on 
+    axis([0 50 0 2])   
+    xticklabels({'8' '11' '14' '17' '20' '23' '26' '29' '32'})
+    xlabel('Hz')
+    ylabel('Average Spike count')
+end
+
+% 8:3:32
+MUrate = {};
+MUrate.mean = mean(rate_stimMU,2);
+test = MUrate.mean(1:2:49);
+test2=  MUrate.mean(2:2:50);
+figure
+plot(1:2:49,test)
+hold on 
+plot(2:2:50,test2)
+
+MUrate.error = std(rate_stimMU,1);
+figure
+plot(MUrate.mean);
+edges = [-PreStim:1e-3:StimDur + PostStim];
+[N,edges] = histcounts(spikes_pooled{1, 1},edges);
+N = N*1e3;
+xs = 1:600;
+
+ h = 10;
+ for i = 1:length(edges)-1
+     ys(i) = gaussian_kern_reg(xs(i),xs,N,h);
+ end
+
+        plot(ys)
 
 figure
 % ylabel('Repetition rate (Hz)')
@@ -100,7 +180,7 @@ for id = 1:length(SU)
     plot(raster.spikes{id},nreps*(raster.stim{id}-1)+raster.rep{id},'k.','MarkerSize',9);
     xlabel('time (s)')
     ylabel('reps')
-    axis([-0.5 1.5 0 TotalReps+1])
+    axis([-PreStim StimDur+ PostStim 0 TotalReps+1])
 end
 
 
@@ -114,6 +194,6 @@ area([0 StimDur StimDur 0],[0 TotalReps+5 0 TotalReps+5],'LineStyle','none','Fac
 plot(rasterMU.spikes,nreps*(rasterMU.stim-1)+rasterMU.rep,'k.','MarkerSize',9);
 xlabel('time (s)')
 ylabel('reps')
-axis([-0.3 1.3 0 TotalReps+1])
+axis([-PreStim StimDur+ PostStim 0 TotalReps+1])
 
 

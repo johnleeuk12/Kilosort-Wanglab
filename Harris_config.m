@@ -5,7 +5,8 @@ ops.verbose             = 1; % whether to print command line progress
 ops.showfigures         = 1; % whether to plot figures during optimization		
 		
 ops.datatype            = 'openEphys';  % binary ('dat', 'bin') or 'openEphys'		
-ops.fbinary             = 'test_binary.dat'; % will be created for 'openEphys'		
+ops.fbinary             = 'test_binary.dat'; % will be created for 'openEphys'	
+ops.ephys_type          = '116'; % OpenEphys file type. check header number of one "Continuous" file
 ops.fproc               = fullfile(fpath, 'temp_wh.dat'); % residual from RAM of preprocessed data		
 ops.root                = fullfile(fpath); % 'openEphys' only: where raw files are		
 		
@@ -33,7 +34,7 @@ ops.Nrank               = 3;    % matrix rank of spike template model (3)
 ops.nfullpasses         = 6;    % number of complete passes through data during optimization (6)		
 ops.maxFR               = 10000;  % maximum number of spikes to extract per batch (20000)		
 ops.fshigh              = 300;   % frequency for high pass filtering		
-ops.fslow               = 6000;   % frequency for low pass filtering (optional)
+ops.fslow               = 3000;   % frequency for low pass filtering (optional)
 ops.ntbuff              = 64;    % samples of symmetrical buffer for whitening and spike detection		
 ops.scaleproc           = 200;   % int16 scaling of whitened data		
 ops.NT                  = 32*1024+ ops.ntbuff;% this is the batch size (try decreasing if out of memory) 		
@@ -42,17 +43,17 @@ ops.NT                  = 32*1024+ ops.ntbuff;% this is the batch size (try decr
 % the following options can improve/deteriorate results. 		
 % when multiple values are provided for an option, the first two are beginning and ending anneal values, 		
 % the third is the value used in the final pass. 		
-ops.Th               = [8 14 14];    % threshold for detecting spikes on template-filtered data ([6 12 12])		
+ops.Th               = [-6 -12 -12];    % threshold for detecting spikes on template-filtered data ([6 12 12])		
 ops.lam              = [10 30 30];   % large means amplitudes are forced around the mean ([10 30 30])		
 ops.nannealpasses    = 4;            % should be less than nfullpasses (4)		
-ops.momentum         = 1./[20 400];  % start with high momentum and anneal (1./[20 1000])		
+ops.momentum         = 1./[20 1000];  % start with high momentum and anneal (1./[20 1000])		
 ops.shuffle_clusters = 1;            % allow merges and splits during optimization (1)		
 ops.mergeT           = .1;           % upper threshold for merging (.1)		
 ops.splitT           = .1;           % lower threshold for splitting (.1)		
 		
 % options for initializing spikes from data		
 ops.initialize      = 'fromData'; %'fromData' or 'no'		
-ops.spkTh           = -5;      % spike threshold in standard deviations (4)		
+ops.spkTh           = - 6;      % spike threshold in standard deviations (4)		
 ops.loc_range       = [3  1];  % ranges to detect peaks; plus/minus in time and channel ([3 1])		
 ops.long_range      = [30  6]; % ranges to detect isolated peaks ([30 6])		
 ops.maskMaxChannels = 5;       % how many channels to mask up/down ([5])		
@@ -60,7 +61,7 @@ ops.crit            = .65;     % upper criterion for discarding spike repeates (
 ops.nFiltMax        = 10000;   % maximum "unique" spikes to consider (10000)		
 		
 % load predefined principal components (visualization only (Phy): used for features)		
-dd                  = load('PCspikes3.mat'); % you might want to recompute this from your own data		
+dd                  = load(fullfile(fpath,'PCspikes3.mat')); % you might want to recompute this from your own data		
 ops.wPCA            = dd.Wi(:,1:7);   % PCs 		
 		
 % options for posthoc merges (under construction)		
