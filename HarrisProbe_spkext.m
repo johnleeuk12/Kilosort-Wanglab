@@ -13,11 +13,11 @@ addpath(genpath('C:\Users\John.Lee\Documents\GitHub\copy\KiloSort')) % path to k
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\analysis-tools'))
 animal = 'M44D';
-filenb = '2018-12-20_12-56-33';
-filepath = ['C:\DATA\OpenEphys' filesep animal];
+filenb = '2018-12-19_13-27-45';
+filepath = ['C:\DATA\OpenEphys' filesep animal filesep filenb];
 
 if ~exist(filepath, 'dir'); mkdir(filepath); end
-filepath2 = ':\Data\Experiments\M44D'; %file path for .m files
+% filepath2 = ':\Data\Experiments\M44D'; %file path for .m files
 addpath(genpath(filepath))
 % data1 = McsHDF5.McsData([filepath filesep animal filenb '.h5']);
 
@@ -31,8 +31,9 @@ addpath(genpath(filepath))
 file_type = '116';
 
 parfor ch = 1:64    
-    [data1,timestamps{ch},info{ch}] = load_open_ephys_data([filepath filesep filenb filesep file_type '_CH' num2str(ch) '.continuous' ]);   
+    [data1,timestamps{ch},info{ch}] = load_open_ephys_data_faster([filepath filesep file_type '_CH' num2str(ch) '.continuous' ]);   
     datach{ch} = data1;
+    disp(ch)
 end
 
 % All_Ch.data = datacch;
@@ -46,7 +47,7 @@ end
 
 total_sample = length(datach{1});
 filtData = zeros(64,total_sample);
-parfor ch = 5:64
+parfor ch = 1:64
     disp(['filtering CH_' num2str(ch)])
     filtData(ch,:) = filtfilt(b,a,datach{ch});
     

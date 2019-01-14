@@ -5,7 +5,7 @@ function master_Harris()
 useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulated data takes 55 seconds on gtx 1080 + M2 SSD.
 
 
-session_name = '2018-12-20_12-56-33';
+session_name = '2018-12-19_13-27-45';
 
 fpath    = fullfile('C:\DATA\OpenEphys\M44D\', session_name); % where on disk do you want the simulation? ideally and SSD...
 if ~exist(fpath, 'dir'); mkdir(fpath); end

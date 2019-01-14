@@ -4,7 +4,7 @@ addpath(genpath('C:\Users\John.Lee\Documents\GitHub\copy\KiloSort')) % path to k
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
 addpath('C:\DATA\OpenEphys\M44D');
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\analysis-tools'))
-fpath    = 'C:\DATA\OpenEphys\M44D\2018-11-21_15-31-22'; % where on disk do you want the simulation? ideally and SSD...
+fpath    = 'C:\DATA\OpenEphys\M44D\2019-01-10_13-56-05'; % where on disk do you want the simulation? ideally and SSD...
 fs = 30000;
 
 spike_times_all = readNPY(fullfile(fpath, 'spike_times.npy'));
@@ -18,7 +18,7 @@ spike_clusters = readNPY(fullfile(fpath, 'spike_clusters.npy'));
 % - 2 = good
 % - 3 = unsorted
 
-x = M44D1092;
+x = M44D1084;
 % in the case where single recording in two different sessions
 % x2 = M44D1076;
 
@@ -32,8 +32,8 @@ SU = find(Cgroups == 2);
 MU = find(Cgroups == 1);
 
 
-PreStim = 0.4; %s
-PostStim = 0.4; %s
+PreStim = x.pre_stimulus_record_time*1e-3; %s
+PostStim = x.post_stimulus_record_time*1e-3; %s
 StimDur = x.stimulus_ch1(1,5)*1e-3;
 
 stim_info = x.data(find(x.data(:,3) == 1 & x.data(:,4) == -1),:); 
@@ -50,6 +50,16 @@ data_new = stim_info;
 % stim_info_tags = x.data_tags;
 start_stim_times = timestamps(find(info.eventId ==1));
 end_stim_times = timestamps(find(info.eventId ==0));
+
+
+%if kwe
+filename = 'experiment1.kwe';
+rec_start_time = 211384/fs;
+event_times = h5read('experiment1.kwe','/event_types/TTL/events/time_samples');
+event_times = event_times/fs-rec_start_time;
+start_stim_times = double(event_times(1:2:end));
+end_stim_times = double(event_times(2:2:end));
+
 nreps = x.stimulus_ch1(1,4);
 nStim = max(x.stimulus_ch1(:,1));
 
@@ -74,6 +84,7 @@ for id = 1:length(SU)
     rate_stim{id} = [];
     spike_times{id} = spike_times_all(find(spike_clusters == Cids(SU(id))));
     for rep = 1:TotalReps
+        %for raster
         spikes1 = spike_times{id}(find(spike_times{id}>=start_stim_times(rep)-PreStim & ...
             spike_times{id}<=end_stim_times(rep)+ PostStim)).';
         spikes1 = spikes1 - start_stim_times(rep);
@@ -81,9 +92,14 @@ for id = 1:length(SU)
         raster.stim{id} = [raster.stim{id} data_new(rep,1)*ones(size(spikes1))];
         raster.rep{id} = [raster.rep{id} data_new(rep,2)*ones(size(spikes1))];
         raster.spikes{id} = [raster.spikes{id} spikes1];
+        
+        %for rate
         spikes2 = spike_times{id}(find(spike_times{id}>=start_stim_times(rep) & ...
             spike_times{id}<=end_stim_times(rep))).';
         rate_stim{id}(data_new(rep,1),data_new(rep,2)) = length(spikes2);
+        spikes3 = spike_times{id}(find(spike_times{id}<=start_stim_times(rep) & ...
+            spike_times{id}>=start_stim_times(rep)-PreStim)).';
+        rate_pre{id}(data_new(rep,1),data_new(rep,2)) = length(spikes3);
     end
 end
 
@@ -115,34 +131,36 @@ stim_label  = x.stimulus_ch1(:,8);
 SUrate = {};
 figure
 for id = 1:length(SU)
-    SUrate{id}.mean = mean(rate_stim{id}(:,1:14),2);
-
-
-    SUrate{id}.error = std(rate_stim{id}(:,1:14),1,2)/400;
     
-%     subplot(3,4,id)
-%     errorbar(2:2:50,SUrate{id}.mean(2:2:50),SUrate{id}.error(2:2:50))
-%     
-%     hold on
-%     errorbar(1:2:49,SUrate{id}.mean(1:2:49),SUrate{id}.error(1:2:49))
-%     
+    SUrate{id}.mean = mean(rate_stim{id},2)-mean(rate_pre{id},2);
     
-        xs = 1:25;
+    
+    SUrate{id}.error = std(rate_stim{id},1,2)/400;
+    
+    %     subplot(3,4,id)
+    %     errorbar(2:2:50,SUrate{id}.mean(2:2:50),SUrate{id}.error(2:2:50))
+    %
+    %     hold on
+    %     errorbar(1:2:49,SUrate{id}.mean(1:2:49),SUrate{id}.error(1:2:49))
+    %
+    
+    xs = 1:37;
     h =1.0;
-    for i = 1:25
-        ys1(i) = gaussian_kern_reg(xs(i),xs,SUrate{id}.mean(1:2:49).',h);
-        ys2(i) = gaussian_kern_reg(xs(i),xs,SUrate{id}.mean(2:2:50).',h);
+    for i = 1:37
+        ys1(i) = gaussian_kern_reg(xs(i),xs,SUrate{id}.mean.',h);
+        %         ys2(i) = gaussian_kern_reg(xs(i),xs,SUrate{id}.mean(2:2:50).',h);
     end
-    subplot(3,4,id)
-    plot(1:2:49,ys1,'LineWidth',2);
+        subplot(4,5,id)
+    plot(stim_label,ys1,'LineWidth',2);
     
-    hold on
-    plot(2:2:50,ys2,'LineWidth',2);
-    legend on 
-    axis([0 50 0 2])   
-    xticklabels({'8' '11' '14' '17' '20' '23' '26' '29' '32'})
+    %     hold on
+    %     plot(2:2:50,ys2,'LineWidth',2);
+    legend on
+    %     axis([0 50 0 2])
+    %     xticklabels({'8' '11' '14' '17' '20' '23' '26' '29' '32'})
     xlabel('Hz')
     ylabel('Average Spike count')
+    drawnow()
 end
 
 % 8:3:32
@@ -170,10 +188,11 @@ xs = 1:600;
 
         plot(ys)
 
-figure
+% figure
 % ylabel('Repetition rate (Hz)')
 for id = 1:length(SU)
-    subplot(ceil(sqrt(length(SU))),ceil(sqrt(length(SU))),id)
+%     subplot(ceil(sqrt(length(SU))),ceil(sqrt(length(SU))),id)
+    figure
     hold on
     title(['cluster nb ' num2str(id)])
     area([0 StimDur StimDur 0],[0 TotalReps+5 0 TotalReps+5],'LineStyle','none','FaceColor',[.85 .85 1]);
