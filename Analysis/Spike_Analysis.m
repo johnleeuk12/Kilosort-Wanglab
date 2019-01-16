@@ -41,7 +41,7 @@ end_stim_times = double(event_times(2:2:end));
 
 %% extracting stim and trial info
 
-x = M44D1084;
+x = M44D1083;
 stim_info = x.data(find(x.data(:,3) == 1 & x.data(:,4) == -1),:); 
 nreps = x.stimulus_ch1(1,4);
 nStim = max(x.stimulus_ch1(:,1));
@@ -153,7 +153,7 @@ end
 
 
 % % PCA and clustering
-[Wi,score,latent] = pca([spikes{32}; spikes{33}; spikes{48}; spikes{53}; spikes{52}] );
+[Wi,score,latent] = pca(spikes{52} );
 scatter(score(:,1),score(:,2));
 
 X = [score(:,1) score(:,2)]; 
@@ -164,7 +164,7 @@ figure
 gscatter(score(:,1),score(:,2),idx)
 % 
 
-test = find(idx ==3);
+test = find(idx ==2);
 
 
 

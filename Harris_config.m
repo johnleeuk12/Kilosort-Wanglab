@@ -6,7 +6,7 @@ ops.showfigures         = 1; % whether to plot figures during optimization
 		
 ops.datatype            = 'openEphys';  % binary ('dat', 'bin') or 'openEphys'		
 ops.fbinary             = 'test_binary.dat'; % will be created for 'openEphys'	
-ops.ephys_type          = '116'; % OpenEphys file type. check header number of one "Continuous" file
+ops.ephys_type          = '100'; % OpenEphys file type. check header number of one "Continuous" file
 ops.fproc               = fullfile(fpath, 'temp_wh.dat'); % residual from RAM of preprocessed data		
 ops.root                = fullfile(fpath); % 'openEphys' only: where raw files are		
 		
@@ -61,7 +61,7 @@ ops.crit            = .65;     % upper criterion for discarding spike repeates (
 ops.nFiltMax        = 10000;   % maximum "unique" spikes to consider (10000)		
 		
 % load predefined principal components (visualization only (Phy): used for features)		
-dd                  = load(fullfile(fpath,'PCA_kwe.mat')); % you might want to recompute this from your own data		
+dd                  = load(fullfile(fpath,'PCspikes3.mat')); % you might want to recompute this from your own data		
 ops.wPCA            = dd.Wi(:,1:7);   % PCs 		
 		
 % options for posthoc merges (under construction)		
