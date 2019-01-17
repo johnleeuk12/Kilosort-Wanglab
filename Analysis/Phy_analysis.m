@@ -6,38 +6,47 @@ addpath('C:\DATA\OpenEphys\M44D');
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\analysis-tools'))
 fpath    = 'C:\DATA\OpenEphys\M44D\2019-01-10_13-56-05'; % where on disk do you want the simulation? ideally and SSD...
 fs = 30000;
-x = M44D1204;
 
-kwe = 0;
+x = M44D1204; %// add option to choose file
 
+
+kwe = 0; %// option for debugging, use when events are saved in .kwe format
+
+%// Loading spike times and cluster information, output from Kilosort
 spike_times_all = readNPY(fullfile(fpath, 'spike_times.npy'));
 % spike_times_all = double(spike_times_all)/fs;
 spike_times_all = double(spike_times_all);
 spike_clusters = readNPY(fullfile(fpath, 'spike_clusters.npy'));
-
 [Cids Cgroups] = readClusterGroupsCSV(fullfile(fpath, 'cluster_group.tsv'));
 
-
+%/*
 % for Cgroups:
 % - 0 = noise
 % - 1 = mua
 % - 2 = good
 % - 3 = unsorted
+%*/
 Cchannels = csvread(fullfile(fpath, 'channel_data.csv'),1,0);
-%first row = id, 3rd row = ch number
+channels = unique(Cchannels(:,3));
+%/* first row = id, 3rd row = ch number
+create this file using phy, so that you have matching info on file number, channel number
+%*/
 
-
-% in the case where single recording in two different sessions
+%// in the case where single recording in two different sessions
 % x2 = M44D1076;
 
-channels = unique(Cchannels(:,3));
-%% extracting waveforms
+%%// Extracting raw waveforms 
+
+%// This allows us to obtain raw/filtered waveforms for offline amplitude/ PCA analysis.
+
 file_type = '126';
 parfor ch = 1:length(channels)
-        [data1,timestamps{ch},info{ch}] = load_open_ephys_data_faster([fpath filesep file_type '_CH' num2str(channels(ch)) '.continuous' ]);    
+    disp(['loading data from channel ' num2str(ch))
+    [data1,timestamps{ch},info{ch}] = load_open_ephys_data_faster([fpath filesep file_type '_CH' num2str(channels(ch)) '.continuous' ]);    
     datach{ch} = data1;
 end
 
+%// Preprocessing data
 [b,a] = butter(4, [0.0244 0.6104]);
 
 
@@ -49,34 +58,32 @@ parfor ch = 1:length(channels)
     
 end
 
-test = filtData(9,240:280);
-plot(test)
+%// common median referencing
+CommonMedian = median(filtData);
+st_dev = zeros(1,64);
+parfor ch = 1:64
+    filtData(ch,:) = filtData(ch,:)-CommonMedian;
+    st_dev(ch) = median(abs(filtData(ch,:))/0.6745);
+    disp(ch)
+end
 
 
+%// extracting waveforms from processed data
 waveforms = {};
 for tid = 1:length(Cchannels(:,1))
     id = Cchannels(tid,1);
-        spike_times{id} = spike_times_all(find(spike_clusters == id)); %*fs;
-        waveforms{tid} = zeros(length(spike_times{id}),60);
-        for t = 1:length(spike_times{id})
-            waveforms{tid}(t,:) = filtData(find(channels == Cchannels(find(Cchannels(:,1)==id),3)), ...
-                round(spike_times{id}(t,1)-19):round(spike_times{id}(t,1)+40,1));
-        end
+    spike_times{tid} = spike_times_all(find(spike_clusters == id)); %*fs;
+    waveforms.raw{tid} = zeros(length(spike_times{tid}),60);
+    for t = 1:length(spike_times{tid})
+        waveforms.raw{tid}(t,:) = filtData(find(channels == Cchannels(find(Cchannels(:,1)==id),3)), ...
+            round(spike_times{tid}(t,1)-19):round(spike_times{tid}(t,1)+40,1));
+    end
+    waveforms.mean{tid} = mean(waveforms{tid},1);
+    waveforms.std{tid} = std(waveforms{tid},1,1);
 end
 
 
-for i = 1:18
-    mean_wave{i} = mean(waveforms{i},1);
-end
-
-figure
-for i = 1:18
-    plot(mean_wave{i})
-    hold on
-    pause
-end
-
-
+%// PCA if needed 
 [Wi,score,latent] = pca(waveforms{14} );
 scatter(score(:,1),score(:,2));
 
@@ -95,19 +102,21 @@ gscatter(score(:,1),score(:,2),idx)
 % end
 %         
 
-if kwe ~=1
-file_type = '116';
-ch =1;
-[data1,timestamps1,info] = load_open_ephys_data_faster([fpath filesep file_type '_CH' num2str(ch) '.continuous' ]); 
-% 
-[data, timestamps, info] = load_open_ephys_data(fullfile(fpath, 'all_channels.events'));
-rec_start_time = timestamps1(1);
-start_stim_times = timestamps(find(info.eventId ==1))-rec_start_time;
-end_stim_times = timestamps(find(info.eventId ==0))-rec_start_time;
-end
-% [data, timestamps, info] = load_open_ephys_data(fullfile(fpath, 'messages.events'));
 
-%% Extracting spiketimes
+%%
+if kwe ~=1
+    file_type = '116';
+    %ch =1;
+    %[data1,timestamps1,info] = load_open_ephys_data_faster([fpath filesep file_type '_CH' num2str(ch) '.continuous' ]); 
+    % 
+    [data, timestamps, info] = load_open_ephys_data(fullfile(fpath, 'all_channels.events'));
+    rec_start_time = timestamps{ch}(1);
+    start_stim_times = timestamps(find(info.eventId ==1))-rec_start_time;
+    end_stim_times = timestamps(find(info.eventId ==0))-rec_start_time;
+end
+
+
+%%// Extracting spiketimes
 
 SU = find(Cgroups == 2);    
 MU = find(Cgroups == 1);
@@ -181,7 +190,7 @@ for id = 1:length(SU)
             spike_times{id}<=end_stim_times(rep))).';
         rate_stim{id}(data_new(rep,1),data_new(rep,2)) = length(spikes2);
         spikes3 = spike_times{id}(find(spike_times{id}<=start_stim_times(rep) & ...
-            spike_times{id}>=start_stim_times(rep)-StimDur)).';
+            spike_times{id}>=start_stim_times(rep)-StimDur)).' ;
         rate_pre{id}(data_new(rep,1),data_new(rep,2)) = length(spikes3);
     end
 end
