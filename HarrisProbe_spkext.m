@@ -13,7 +13,7 @@ addpath(genpath('C:\Users\John.Lee\Documents\GitHub\copy\KiloSort')) % path to k
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\analysis-tools'))
 animal = 'M44D';
-filenb = '2018-12-19_13-27-45';
+filenb = '2018-12-19_13-41-03';
 filepath = ['C:\DATA\OpenEphys' filesep animal filesep filenb];
 
 if ~exist(filepath, 'dir'); mkdir(filepath); end
@@ -176,11 +176,11 @@ end
 % 
 
 disp('Saving files...')
-save([animal filenb '_proc.mat'],'Output','-v7.3')
+% save([animal filenb '_proc.mat'],'Output','-v7.3')
 
 save(fullfile(filepath, '\PCspikes3.mat'),'Wi')
 
-
+test
 
 % [coeff,score,latent] = pca(Output.wavelets);
 % %% preprocessing data
