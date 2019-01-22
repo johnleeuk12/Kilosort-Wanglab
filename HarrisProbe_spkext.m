@@ -13,7 +13,7 @@ addpath(genpath('C:\Users\John.Lee\Documents\GitHub\copy\KiloSort')) % path to k
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\analysis-tools'))
 animal = 'M44D';
-filenb = '2018-12-19_13-41-03';
+filenb = '2018-12-05_13-11-28';
 filepath = ['C:\DATA\OpenEphys' filesep animal filesep filenb];
 
 if ~exist(filepath, 'dir'); mkdir(filepath); end
@@ -29,7 +29,6 @@ addpath(genpath(filepath))
 
 
 file_type = '116';
-
 parfor ch = 1:64    
     [data1,timestamps{ch},info{ch}] = load_open_ephys_data_faster([filepath filesep file_type '_CH' num2str(ch) '.continuous' ]);   
     datach{ch} = data1;
@@ -44,13 +43,11 @@ end
 % butterworth bandpass filter
 [b,a] = butter(4, [0.0244 0.6104]);
 
-
 total_sample = length(datach{1});
 filtData = zeros(64,total_sample);
 parfor ch = 1:64
     disp(['filtering CH_' num2str(ch)])
     filtData(ch,:) = filtfilt(b,a,datach{ch});
-    
 end
 
 %Common median referencing

@@ -4,11 +4,14 @@ addpath(genpath('C:\Users\John.Lee\Documents\GitHub\copy\KiloSort')) % path to k
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
 addpath('C:\DATA\OpenEphys\M44D');
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\analysis-tools'))
-fpath    = 'C:\DATA\OpenEphys\M44D\2019-01-10_13-56-05'; % where on disk do you want the simulation? ideally and SSD...
+addpath(genpath('C:\DATA\xbz'));
+fpath    = 'C:\DATA\OpenEphys\M44D\2018-12-05_10-42-43'; % where on disk do you want the simulation? ideally and SSD...
 fs = 30000;
 
-x = M44D1204; %// add option to choose file
+addpath(genpath('C:\DATA\xbz'));
 
+x = M44D1179; %// add option to choose file
+Nb_ch = 64;
 
 kwe = 0; %// option for debugging, use when events are saved in .kwe format
 
@@ -27,9 +30,16 @@ spike_clusters = readNPY(fullfile(fpath, 'spike_clusters.npy'));
 % - 3 = unsorted
 %*/
 Cchannels = csvread(fullfile(fpath, 'channel_data.csv'),1,0);
-channels = unique(Cchannels(:,3));
+
+chanMap = [23 8 13 6 14 10 11 19 16 22 24 29 25 9 15 4 12 26 ...
+    28 20 21 32 27 63 1 31 2 17 3 7 30 5 59 36 57 61 ...
+    47 64 33 18 48 46 34 62 35 60 45 37 38 42 49 53 ...
+    51 55 40 44 56 43 58 54 39 52 50 41]; 
+
+channels  = chanMap(Cchannels(:,3)+1);
+% channels = unique(channels);
 %/* first row = id, 3rd row = ch number
-create this file using phy, so that you have matching info on file number, channel number
+% create this file using phy, so that you have matching info on file number, channel number
 %*/
 
 %// in the case where single recording in two different sessions
@@ -39,10 +49,18 @@ create this file using phy, so that you have matching info on file number, chann
 
 %// This allows us to obtain raw/filtered waveforms for offline amplitude/ PCA analysis.
 
-file_type = '126';
-parfor ch = 1:length(channels)
-    disp(['loading data from channel ' num2str(ch))
-    [data1,timestamps{ch},info{ch}] = load_open_ephys_data_faster([fpath filesep file_type '_CH' num2str(channels(ch)) '.continuous' ]);    
+% for ch = 1:length(channels)
+%     channels = [channels; abs(channels(ch)-4); abs(channels(ch)-3); abs(channels(ch)-2); abs(channels(ch)-1); ...
+%         abs(channels(ch)+1) ;abs(channels(ch)+2); abs(channels(ch)+3); abs(channels(ch)+4)];
+% end
+% channels = unique(channels);
+
+timestamps = {};
+info = {};
+file_type = '116';
+parfor ch = 1:Nb_ch
+    disp(['loading data from channel ' num2str(ch)])
+    [data1,timestamps{ch},info{ch}] = load_open_ephys_data_faster([fpath filesep file_type '_CH' num2str(ch) '.continuous' ]);    
     datach{ch} = data1;
 end
 
@@ -51,17 +69,17 @@ end
 
 
 total_sample = length(datach{1});
-filtData = zeros(length(channels),total_sample);
-parfor ch = 1:length(channels)
+filtData = zeros(Nb_ch,total_sample);
+parfor ch = 1:Nb_ch
     disp(['filtering CH_' num2str(ch)])
     filtData(ch,:) = filtfilt(b,a,datach{ch});
     
 end
-
-%// common median referencing
+% 
+% // common median referencing
 CommonMedian = median(filtData);
-st_dev = zeros(1,64);
-parfor ch = 1:64
+st_dev = zeros(1,Nb_ch);
+parfor ch = 1:Nb_ch
     filtData(ch,:) = filtData(ch,:)-CommonMedian;
     st_dev(ch) = median(abs(filtData(ch,:))/0.6745);
     disp(ch)
@@ -69,31 +87,67 @@ end
 
 
 %// extracting waveforms from processed data
-waveforms = {};
+waveforms.raw = {};
+waveforms.mean = {};
+waveforms.std = {};
 for tid = 1:length(Cchannels(:,1))
     id = Cchannels(tid,1);
     spike_times{tid} = spike_times_all(find(spike_clusters == id)); %*fs;
     waveforms.raw{tid} = zeros(length(spike_times{tid}),60);
     for t = 1:length(spike_times{tid})
-        waveforms.raw{tid}(t,:) = filtData(find(channels == Cchannels(find(Cchannels(:,1)==id),3)), ...
-            round(spike_times{tid}(t,1)-19):round(spike_times{tid}(t,1)+40,1));
+        waveforms.raw{tid}(t,:) = filtData(channels(find(Cchannels(:,1)==id)), ...
+            round(spike_times{tid}(t,1)-19):round(spike_times{tid}(t,1)+40,1)); %
     end
-    waveforms.mean{tid} = mean(waveforms{tid},1);
-    waveforms.std{tid} = std(waveforms{tid},1,1);
+    waveforms.mean{tid} = mean(waveforms.raw{tid},1);
+    waveforms.std{tid} = std(waveforms.raw{tid},[],1);
+    peak_to_peak = max(waveforms.mean{tid})-min(waveforms.mean{tid});
+    noise = mean(waveforms.std{tid}(1:10));
+    waveforms.SNR{tid} = 20.*log10(peak_to_peak./noise);
+%        plot(waveforms.mean{1})
 end
 
 
+% SNR
+% function [ SNR, meanSnippet, stdSnippet ] = AnalyzeSpikeSnippet( Snippets )
+% %ANALYZESPIKESNIPPET Computes the SNR and average spike snippet.
+% %   Snippets must be passed in as a m x n array where m is the number of
+% %   snippets and n is the number of points in each snippet.
+
+% SNR = zeros(1,length(Cchannels(:,1)));
+% for tid = 1:length(Cchannels(:,1))  
+%     Snippets = waveforms.raw{tid};
+%     peak_to_peak = max(meanSnippet) - min(meanSnippet);
+%     noise = mean(stdSnippet(1:10));
+%     SNR(ch) = 20.*log10(peak_to_peak./noise);
+% end
+% Output.SNR = SNR.';
+
+
+
+% figure
+% for n = 1:4
+%     plot(waveforms.mean{n})
+%     hold on
+% end
+% figure
+% for n = 1:size(waveforms.raw{1},1)
+% %     if idx(n) ==2
+%     plot(waveforms.raw{1}(n,:))
+%     hold on
+% %     end
+% end
+
 %// PCA if needed 
-[Wi,score,latent] = pca(waveforms{14} );
-scatter(score(:,1),score(:,2));
-
-X = [score(:,1) score(:,2)]; 
-idx = kmeans(X,3);
-
-
-figure
-gscatter(score(:,1),score(:,2),idx)
-%         
+% [Wi,score,latent] = pca(waveforms.raw{1} );
+% % scatter(score(:,1),score(:,2));
+% 
+% X = [score(:,1) score(:,2)]; 
+% idx = kmeans(X,3);
+% 
+% 
+% figure
+% gscatter(score(:,1),score(:,2),idx)
+% %         
 % 
 % figure
 % for n=  1:80
@@ -106,11 +160,12 @@ gscatter(score(:,1),score(:,2),idx)
 %%
 if kwe ~=1
     file_type = '116';
-    %ch =1;
+    ch =1;
+    rec_start_time = timestamps{ch}(1);
     %[data1,timestamps1,info] = load_open_ephys_data_faster([fpath filesep file_type '_CH' num2str(ch) '.continuous' ]); 
     % 
     [data, timestamps, info] = load_open_ephys_data(fullfile(fpath, 'all_channels.events'));
-    rec_start_time = timestamps{ch}(1);
+    
     start_stim_times = timestamps(find(info.eventId ==1))-rec_start_time;
     end_stim_times = timestamps(find(info.eventId ==0))-rec_start_time;
 end
@@ -150,6 +205,7 @@ if kwe ==1
 end
 nreps = x.stimulus_ch1(1,4);
 nStim = max(x.stimulus_ch1(:,1));
+nreps = 10;
 
 %
 % nStim = nStim + max(x2.stimulus_ch1(:,1));
@@ -174,7 +230,7 @@ for id = 1:length(SU)
     raster.spikes{id} = [];
     spikes_pooled{id} = [];  
     rate_stim{id} = [];
-    spike_times{id} = spike_times_all(find(spike_clusters == Cids(SU(id))));
+    spike_times{id} = spike_times_all(find(spike_clusters == Cids(SU(id))))/fs;
     for rep = 1:TotalReps
         %for raster
         spikes1 = spike_times{id}(find(spike_times{id}>=start_stim_times(rep)-PreStim & ...
@@ -204,7 +260,7 @@ rasterMU.spikes = [];
 spike_timesMU = [];
 rate_stimMU =[];
 for id = 1:length(MU)
-    spike_timesMU = spike_times_all(find(spike_clusters == Cids(MU(id))));
+    spike_timesMU = spike_times_all(find(spike_clusters == Cids(MU(id))))/fs;
     for rep = 1:TotalReps
         spikes = spike_timesMU(find(spike_timesMU >= start_stim_times(rep)-PreStim & ...
             spike_timesMU <= end_stim_times(rep)+ PostStim)).';
@@ -218,20 +274,19 @@ for id = 1:length(MU)
     end
 end
 
-stim_label  = log(x.stimulus_ch1(:,8));
+stim_label  = x.stimulus_ch1(:,8);
 
 SUrate = {};
 % figure
 for id = 1:length(SU)
     figure
-    
+    sgtitle(['cluster ' num2str(Cids(SU(id))) ' channel ' num2str(channels(id))])
     set(gcf, 'Position', get(gcf,'Position').*[1 1 0 0] + [0 -600 1000 800]);
+    %waveform
     subplot(2,2,1)
-    SUrate{id}.mean = mean(rate_stim{id},2)-mean(rate_pre{id},2);
-    
-    
-    SUrate{id}.error = std(rate_stim{id},1,2)/400;
-    
+    SUrate{id}.mean = mean(rate_stim{id},2); %-mean(rate_pre{id},2);
+    SUrate{id}.error = std(rate_stim{id},1,2);
+    SUrate{id}.spont = mean(mean(rate_pre{id}));
     %     subplot(3,4,id)
     %     errorbar(2:2:50,SUrate{id}.mean(2:2:50),SUrate{id}.error(2:2:50))
     %
@@ -239,33 +294,47 @@ for id = 1:length(SU)
     %     errorbar(1:2:49,SUrate{id}.mean(1:2:49),SUrate{id}.error(1:2:49))
     %
     
-    xs = 1:25;
+    xs = 1:length(stim_label);
     h =1.0;
-    for i = 1:25
-        ys1(i) = gaussian_kern_reg(xs(i),xs,SUrate{id}.mean(1:2:50).',h);
-        ys2(i) = gaussian_kern_reg(xs(i),xs,SUrate{id}.mean(2:2:50).',h);
+    for i = 1:length(stim_label)
+        ys1(i) = gaussian_kern_reg(xs(i),xs,SUrate{id}.mean.',h);
+        %         ys2(i) = gaussian_kern_reg(xs(i),xs,SUrate{id}.mean(2:2:50).',h);
     end
-%     subplot(3,3,id)
-%     plot(stim_label(1:2:end),ys1,'LineWidth',2);
-    
+    %     subplot(3,3,id)
+    errorbar(stim_label,ys1/StimDur,SUrate{id}.error,'LineWidth',2);
     hold on
-    plot(stim_label(2:2:end),ys2,'LineWidth',2);
+    
+    plot(stim_label,ones(1,length(stim_label))*SUrate{id}.spont/StimDur,'--k');
+    %     plot(stim_label(2:2:end),ys2,'LineWidth',2);
     %     legend on
     %         axis([0 50 0 2])
     %         xticklabels({'8' '11' '14' '17' '20' '23' '26' '29' '32'})
     xlabel('Hz')
-    ylabel('Average Spike count')
-    title(['cluster ' num2str(Cids(SU(id)))])
-    
-        subplot(2,2,[2 4])
+    ylabel('firing rate (spikes/s)')
+    title('tuning curve')
+    subplot(2,2,3)
+    time_step = [1:60]/fs*1e3;
+    for n = 1:100    
+        plot(time_step,waveforms.raw{find(channels ==channels(id))}(n,:))
+        hold on
+    end
+        plot(time_step,waveforms.mean{find(channels ==channels(id))},'Linewidth',2,'Color','k')
+    title('waveform')
+    xlabel('time (ms)')
+    ylabel('mV');
+hold off
+    %Raster plot
+    subplot(2,2,[2 4])
     area([0 StimDur StimDur 0],[0 TotalReps+5 0 TotalReps+5],'LineStyle','none','FaceColor',[.85 .85 1]);
     hold on
     plot(raster.spikes{id},nreps*(raster.stim{id}-1)+raster.rep{id},'k.','MarkerSize',9);
-%     pause
+    %     pause
     xlabel('time (s)')
     ylabel('reps')
     axis([-PreStim StimDur+ PostStim 0 TotalReps+1])
     hold off
+    title('rasterplot')
+    
     drawnow()
 end
 % 
@@ -304,16 +373,18 @@ end
 % 
 % 
 % 
-% figure
-% % ylabel('Repetition rate (Hz)')
-% 
-% 
-% hold on
-% title('Multi Units ')
-% area([0 StimDur StimDur 0],[0 TotalReps+5 0 TotalReps+5],'LineStyle','none','FaceColor',[.85 .85 1]);
-% plot(rasterMU.spikes,nreps*(rasterMU.stim-1)+rasterMU.rep,'k.','MarkerSize',9);
-% xlabel('time (s)')
-% ylabel('reps')
-% axis([-PreStim StimDur+ PostStim 0 TotalReps+1])
+figure
+% ylabel('Repetition rate (Hz)')
+
+
+hold on
+figure
+title('Multi Units ')
+area([0 StimDur StimDur 0],[0 TotalReps+5 0 TotalReps+5],'LineStyle','none','FaceColor',[.85 .85 1]);
+hold on 
+plot(rasterMU.spikes,nreps*(rasterMU.stim-1)+rasterMU.rep,'k.','MarkerSize',9);
+xlabel('time (s)')
+ylabel('reps')
+axis([-PreStim StimDur+ PostStim 0 TotalReps+1])
 
 
