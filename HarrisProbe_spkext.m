@@ -1,4 +1,4 @@
-function HarrisProbe_spkext()
+function HarrisProbe_spkext(session_name,file_type)
 
 close all
 
@@ -13,8 +13,8 @@ addpath(genpath('C:\Users\John.Lee\Documents\GitHub\copy\KiloSort')) % path to k
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\analysis-tools'))
 animal = 'M44D';
-filenb = '2018-12-05_13-11-28';
-filepath = ['C:\DATA\OpenEphys' filesep animal filesep filenb];
+% filenb = '2018-12-05_13-11-28';
+filepath = ['C:\DATA\OpenEphys' filesep animal filesep session_name];
 
 if ~exist(filepath, 'dir'); mkdir(filepath); end
 % filepath2 = ':\Data\Experiments\M44D'; %file path for .m files
@@ -28,7 +28,8 @@ addpath(genpath(filepath))
 % end
 
 
-file_type = '116';
+% file_type = '116';
+
 parfor ch = 1:64    
     [data1,timestamps{ch},info{ch}] = load_open_ephys_data_faster([filepath filesep file_type '_CH' num2str(ch) '.continuous' ]);   
     datach{ch} = data1;
