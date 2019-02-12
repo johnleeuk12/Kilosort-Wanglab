@@ -1,4 +1,4 @@
-function HarrisProbe_spkext(session_name,file_type)
+function HarrisProbe_spkext(fpath,file_type)
 
 close all
 
@@ -9,16 +9,22 @@ close all
 % time unit = 10^-6 seconds 
 % Voltage unit = 10^-9 V
 % First trigger is trigger of recording ( needs to be verified)
-addpath(genpath('C:\Users\John.Lee\Documents\GitHub\copy\KiloSort')) % path to kilosort folder
-addpath(genpath('C:\Users\John.Lee\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
-addpath(genpath('C:\Users\John.Lee\Documents\GitHub\analysis-tools'))
+Gitpath = 'C:\Users\Seth\Documents\GitHub\';
+addpath(genpath([Gitpath 'KiloSort'])) % path to kilosort folder
+addpath(genpath([Gitpath 'npy-matlab'])) % path to npy-matlab scripts
+addpath(genpath([Gitpath 'analysis-tools']))
+
+% addpath(genpath('C:\Users\John.Lee\Documents\GitHub\copy\KiloSort')) % path to kilosort folder
+% addpath(genpath('C:\Users\John.Lee\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
+% addpath(genpath('C:\Users\John.Lee\Documents\GitHub\analysis-tools'))
 animal = 'M44D';
 % filenb = '2018-12-05_13-11-28';
-filepath = ['C:\DATA\OpenEphys' filesep animal filesep session_name];
+% datapath = 'D:\Data\Experiments';
+% fpath = [datapath filesep animal filesep session_name];
 
-if ~exist(filepath, 'dir'); mkdir(filepath); end
+if ~exist(fpath, 'dir'); mkdir(fpath); end
 % filepath2 = ':\Data\Experiments\M44D'; %file path for .m files
-addpath(genpath(filepath))
+addpath(genpath(fpath))
 % data1 = McsHDF5.McsData([filepath filesep animal filenb '.h5']);
 
 % for ch = 1:64
@@ -29,9 +35,10 @@ addpath(genpath(filepath))
 
 
 % file_type = '116';
-
+% parfiles = {'load_open_ephys_data_faster.m'};
+% addAttachedFiles(gcp,parfiles)
 parfor ch = 1:64    
-    [data1,timestamps{ch},info{ch}] = load_open_ephys_data_faster([filepath filesep file_type '_CH' num2str(ch) '.continuous' ]);   
+    [data1,~,~] = load_open_ephys_data_faster([fpath filesep file_type '_CH' num2str(ch) '.continuous' ],'unscaledInt16');   
     datach{ch} = data1;
     disp(ch)
 end
@@ -48,7 +55,7 @@ total_sample = length(datach{1});
 filtData = zeros(64,total_sample);
 parfor ch = 1:64
     disp(['filtering CH_' num2str(ch)])
-    filtData(ch,:) = filtfilt(b,a,datach{ch});
+    filtData(ch,:) = filtfilt(b,a,double(datach{ch}));
 end
 
 %Common median referencing
@@ -176,7 +183,7 @@ end
 disp('Saving files...')
 % save([animal filenb '_proc.mat'],'Output','-v7.3')
 
-save(fullfile(filepath, '\PCspikes3.mat'),'Wi')
+save(fullfile(fpath, '\PCspikes3.mat'),'Wi')
 
 test
 
