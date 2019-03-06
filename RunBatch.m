@@ -1,14 +1,18 @@
 % File path to Kilosort-Wanglab folder
-ourGitpath = 'C:\Users\Seth\Documents\GitHub\Kilosort-Wanglab\';
-loadOEpath = 'C:\Users\Seth\Documents\GitHub\analysis-tools-master';
+GitPath = 'C:\Users\skoehler\Documents\GitHub\';
+ourGitpath = fullfile(GitPath, 'Kilosort-Wanglab');
+loadOEpath = fullfile(GitPath,'analysis-tools');
 addpath(ourGitpath,loadOEpath)
 
 % File path to Log 
-logpath =  'D:\Data\Data Logs\Neurophysiology Log - Multi Electrode Array_KiloSort.xlsx';
+logpath =  'C:\Data\Data Logs\Neurophysiology Log - Multi Electrode Array_KiloSort.xlsx';
 LogTable = readtable(logpath,'Sheet','ExpSessions');
 sessions = LogTable.Session;
 OE_File = string(LogTable.OE_File);
 Date    = datetime(LogTable.Date,'Format','yyyy-MM-dd');
+
+% File path to data
+datapath = '\\datacenterchx.bme.jhu.edu\Project_TNT\Data\Experiments\M44D\';
 
 Nsessions = length(sessions);
 for sesh = 1:Nsessions
@@ -22,5 +26,5 @@ for sesh = 1:Nsessions
         file_type = '100';
     end
     
-    master_Harris(OE_folder,file_type)
+    master_Harris(OE_folder,file_type,GitPath,datapath)
 end

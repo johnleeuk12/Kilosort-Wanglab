@@ -1,4 +1,4 @@
-function master_Harris(session_name, file_type)
+function master_Harris(session_name, file_type, GitPath, datapath)
 
 
 % default options are in parenthesis after the comment
@@ -6,8 +6,7 @@ useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulate
 ops.ephys_type = file_type;
 
 % file paths
-Gitpath = 'C:\Users\Seth\Documents\GitHub\';
-datapath = '\\datacenterchx.bme.jhu.edu\Project_TNT\Data\Experiments\M44D\';
+Gitpath = GitPath;
 fpath    = fullfile(datapath, session_name); % where on disk do you want the simulation? ideally and SSD...
 if ~exist(fpath, 'dir'); mkdir(fpath); end
 addpath(genpath([Gitpath 'KiloSort'])) % path to kilosort folder
