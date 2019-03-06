@@ -38,6 +38,16 @@ event_times = event_times/fs-rec_start_time;
 start_stim_times = double(event_times(1:2:end));
 end_stim_times = double(event_times(2:2:end));
 
+%% extract event times with Openephys format
+%     file_type = '116';
+%     ch =1;
+%     rec_start_time = timestamps{ch}(1);
+%     %[data1,timestamps1,info] = load_open_ephys_data_faster([fpath filesep file_type '_CH' num2str(ch) '.continuous' ]); 
+%     % 
+%     [data, timestamps, info] = load_open_ephys_data(fullfile(fpath, 'all_channels.events'));
+%     
+%     start_stim_times = timestamps(find(info.eventId ==1))-rec_start_time;
+%     end_stim_times = timestamps(find(info.eventId ==0))-rec_start_time;
 
 %% extracting stim and trial info
 
@@ -63,7 +73,7 @@ raster.spikes = {};
 rate_stim = {};
 
 
-timestamps{52} = timestamps{52}(test); 
+% timestamps{52} = timestamps{52}(test); 
 
 for id = 1:N
     raster.stim{id} = [];
@@ -72,16 +82,20 @@ for id = 1:N
     rate_stim{id} = [];
     for rep  = 1:TotalReps
         if length(timestamps{id}) > 10
+            
             spikes1 = timestamps{id}(find(timestamps{id}>=start_stim_times(rep)-PreStim & ...
                 timestamps{id}<=end_stim_times(rep)+ PostStim)).';
             spikes1 = spikes1 - start_stim_times(rep);
+            
             raster.spikes{id} = [raster.spikes{id} spikes1];
             raster.stim{id} = [raster.stim{id} stim_info(rep,1)*ones(size(spikes1))];
             raster.rep{id} = [raster.rep{id} stim_info(rep,2)*ones(size(spikes1))];
+            
             spikes_stim = timestamps{id}(find(timestamps{id}>=start_stim_times(rep) & ...
                 timestamps{id}<=end_stim_times(rep))).';
             spikes_pre = timestamps{id}(find(timestamps{id}<=start_stim_times(rep) & ...
                 timestamps{id}>=start_stim_times(rep)-PreStim)).';
+            
             rate_stim{id}(stim_info(rep,1),stim_info(rep,2)) = length(spikes_stim);
             rate_pre{id}(stim_info(rep,1),stim_info(rep,2)) = length(spikes_pre);
         end
@@ -89,12 +103,14 @@ for id = 1:N
 end
 
 
-%scatter plot
+%% Figures
+%raster plot
+
 figure
 nn =0;
 % ylabel('Repetition rate (Hz)')
 for id = 1:N
-    if ~isempty(raster.stim{id})
+    if ~isempty(raster.stim{id}) % I'm only plotting channels that contain spikes during stim presentation 
         %     else
         nn = nn+1;
         subplot(3,3,nn)
@@ -152,6 +168,7 @@ end
 
 
 
+figure
 % % PCA and clustering
 [Wi,score,latent] = pca(spikes{52} );
 scatter(score(:,1),score(:,2));
