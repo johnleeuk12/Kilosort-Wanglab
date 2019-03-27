@@ -12,8 +12,9 @@ close all
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\copy\KiloSort')) % path to kilosort folder
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\analysis-tools'))
-animal = 'M44D';
+animal = 'M94W';
 % filenb = '2018-12-05_13-11-28';
+session_name = '2019-03-22_14-15-50';
 filepath = ['C:\DATA\OpenEphys' filesep animal filesep session_name];
 
 if ~exist(filepath, 'dir'); mkdir(filepath); end
@@ -176,7 +177,7 @@ end
 disp('Saving files...')
 % save([animal filenb '_proc.mat'],'Output','-v7.3')
 
-save(fullfile(filepath, '\PCspikes3.mat'),'Wi')
+save(fullfile(filepath, '\PCspikes_94W.mat'),'Wi')
 
 test
 
