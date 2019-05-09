@@ -374,8 +374,8 @@ for id = 1:length(SU)
     title('tuning curve')
     subplot(2,2,3)
     time_step = [1:60]/fs*1e3;
-    Nb_wave = min(size(waveforms.raw{find(channels ==channels(id))},1),100);
-    for n = 1:Nb_wave    
+    Nb_wave = min(length(waveforms.raw{find(channels ==channels(id))}),100);
+    for n = 1:100    
         plot(time_step,waveforms.raw{find(channels ==channels(id))}(n,:))
         hold on
     end

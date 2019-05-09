@@ -4,9 +4,9 @@ addpath(genpath('C:\Users\John.Lee\Documents\GitHub\copy\KiloSort')) % path to k
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
 addpath('C:\DATA\OpenEphys\M44D');
 addpath(genpath('C:\Users\John.Lee\Documents\GitHub\analysis-tools'))
-fpath    = 'C:\DATA\OpenEphys\M44D\2019-01-10_13-56-05'; % where on disk do you want the simulation? ideally and SSD...
+fpath    = 'C:\DATA\OpenEphys\M94W\2019-03-22_14-15-50'; % where on disk do you want the simulation? ideally and SSD...
 fs = 30000;
-N = 63;
+N = 64;
 % Alldata = {};
 spikes = {};
 timestamps = {};
@@ -14,7 +14,7 @@ info = {};
 
 %% extracting spike times from openephys spike detection
 parfor i = 1:N
-    [data1, timestamps1, info1] = load_open_ephys_data_faster(fullfile(fpath, sprintf(['SEp133.0n' '%d.spikes'],i-1)));
+    [data1, timestamps1, info1] = load_open_ephys_data_faster(fullfile(fpath, sprintf(['SEp109.0n' '%d.spikes'],i-1)));
     mb_not_noise = [];
     for n = 1:size(data1,1)
         if min(data1(n,:))<-200 && max(data1(n,:))<1000 && min(data1(n,:))>-1500

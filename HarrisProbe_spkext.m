@@ -1,4 +1,4 @@
-function HarrisProbe_spkext(session_name,file_type)
+function HarrisProbe_spkext()
 
 close all
 
@@ -9,14 +9,14 @@ close all
 % time unit = 10^-6 seconds 
 % Voltage unit = 10^-9 V
 % First trigger is trigger of recording ( needs to be verified)
-addpath(genpath('C:\Users\John.Lee\Documents\GitHub\copy\KiloSort')) % path to kilosort folder
-addpath(genpath('C:\Users\John.Lee\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
-addpath(genpath('C:\Users\John.Lee\Documents\GitHub\analysis-tools'))
+addpath(genpath('C:\Users\Seth\Documents\GitHub\copy\KiloSort')) % path to kilosort folder
+addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
+addpath(genpath('C:\Users\Seth\Documents\GitHub\analysis-tools-master'))
 animal = 'M94W';
 % filenb = '2018-12-05_13-11-28';
-session_name = '2019-03-22_14-15-50';
+session_name = '2019-04-05_14-05-45';
 filepath = ['C:\DATA\OpenEphys' filesep animal filesep session_name];
-
+file_type = '100';
 if ~exist(filepath, 'dir'); mkdir(filepath); end
 % filepath2 = ':\Data\Experiments\M44D'; %file path for .m files
 addpath(genpath(filepath))
