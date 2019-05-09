@@ -1,10 +1,12 @@
 function Spike_Analysis()
 
-addpath(genpath('C:\Users\John.Lee\Documents\GitHub\copy\KiloSort')) % path to kilosort folder
-addpath(genpath('C:\Users\John.Lee\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
-addpath('C:\DATA\OpenEphys\M44D');
-addpath(genpath('C:\Users\John.Lee\Documents\GitHub\analysis-tools'))
-fpath    = 'C:\DATA\OpenEphys\M94W\2019-03-22_14-15-50'; % where on disk do you want the simulation? ideally and SSD...
+addpath(genpath('C:\Users\skoehler\Documents\GitHub\KiloSort')) % path to kilosort folder
+addpath(genpath('C:\Users\skoehler\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
+addpath('D:\Data\Experiments\M44D');
+addpath(genpath('C:\Users\skoehler\Documents\GitHub\analysis-tools'))
+% fpath    = 'D:\Data\Experiments\M44D\2019-01-10_13-56-05'; % where on disk do you want the simulation? ideally and SSD...
+fpath = 'D:\Data\Experiments\M94W\2019-03-21_17-06-34';
+
 fs = 30000;
 N = 64;
 % Alldata = {};
@@ -13,14 +15,16 @@ timestamps = {};
 info = {};
 
 %% extracting spike times from openephys spike detection
-parfor i = 1:N
+% parfor i = 1:N
+for i = 1:N
     [data1, timestamps1, info1] = load_open_ephys_data_faster(fullfile(fpath, sprintf(['SEp109.0n' '%d.spikes'],i-1)));
     mb_not_noise = [];
     for n = 1:size(data1,1)
-        if min(data1(n,:))<-200 && max(data1(n,:))<1000 && min(data1(n,:))>-1500
-            mb_not_noise = [mb_not_noise n];
-        end
-        spikes{i} = data1(mb_not_noise,:);
+%         if min(data1(n,:))<-200 && max(data1(n,:))<1000 && min(data1(n,:))>-1500
+%             mb_not_noise = [mb_not_noise n];
+%         end
+%         spikes{i} = data1(mb_not_noise,:);
+        spikes{i} = data1;
         timestamps{i} = timestamps1(mb_not_noise,:);
         info{i} = info1;
     end
@@ -32,7 +36,9 @@ end
 % the only info necessary is relative start-time of each events 
 
 filename = 'experiment1.kwe';
-rec_start_time = 211384/fs;
+% rec_start_time = 211384/fs;
+    rec_start_time = timestamps{ch}(1);
+
 event_times = h5read('experiment1.kwe','/event_types/TTL/events/time_samples');
 event_times = event_times/fs-rec_start_time;
 start_stim_times = double(event_times(1:2:end));
@@ -42,12 +48,12 @@ end_stim_times = double(event_times(2:2:end));
 %     file_type = '116';
 %     ch =1;
 %     rec_start_time = timestamps{ch}(1);
-%     %[data1,timestamps1,info] = load_open_ephys_data_faster([fpath filesep file_type '_CH' num2str(ch) '.continuous' ]); 
-%     % 
-%     [data, timestamps, info] = load_open_ephys_data(fullfile(fpath, 'all_channels.events'));
+%     [data1,timestamps1,info] = load_open_ephys_data_faster([fpath filesep file_type '_CH' num2str(ch) '.continuous' ]);  
 %     
-%     start_stim_times = timestamps(find(info.eventId ==1))-rec_start_time;
-%     end_stim_times = timestamps(find(info.eventId ==0))-rec_start_time;
+%     [data, timestamps2, info] = load_open_ephys_data(fullfile(fpath, 'all_channels.events'));
+%     
+%     start_stim_times = timestamps2(find(info.eventId ==1))-rec_start_time;
+%     end_stim_times = timestamps2(find(info.eventId ==0))-rec_start_time;
 
 %% extracting stim and trial info
 
@@ -158,31 +164,31 @@ end
 
 
 
-figure
-for n = 1: length(test)
-    nn= test(n);
-    plot(spikes{52}(nn,:))
-    hold on
-end
-
-
-
-
-figure
-% % PCA and clustering
-[Wi,score,latent] = pca(spikes{52} );
-scatter(score(:,1),score(:,2));
-
-X = [score(:,1) score(:,2)]; 
-idx = kmeans(X,3);
-
-
-figure
-gscatter(score(:,1),score(:,2),idx)
+% figure
+% for n = 1: length(test)
+%     nn= test(n);
+%     plot(spikes{52}(nn,:))
+%     hold on
+% end
 % 
-
-test = find(idx ==2);
-
+% 
+% 
+% 
+% figure
+% % % PCA and clustering
+% [Wi,score,latent] = pca(spikes{52} );
+% scatter(score(:,1),score(:,2));
+% 
+% X = [score(:,1) score(:,2)]; 
+% idx = kmeans(X,3);
+% 
+% 
+% figure
+% gscatter(score(:,1),score(:,2),idx)
+% % 
+% 
+% test = find(idx ==2);
+% 
 
 
 

@@ -19,7 +19,7 @@ filepath = ['C:\DATA\OpenEphys' filesep animal filesep session_name];
 file_type = '100';
 if ~exist(filepath, 'dir'); mkdir(filepath); end
 % filepath2 = ':\Data\Experiments\M44D'; %file path for .m files
-addpath(genpath(filepath))
+addpath(genpath(fpath))
 % data1 = McsHDF5.McsData([filepath filesep animal filenb '.h5']);
 
 % for ch = 1:64
@@ -30,10 +30,10 @@ addpath(genpath(filepath))
 
 
 % file_type = '116';
-
+% parfiles = {'load_open_ephys_data_faster.m'};
+% addAttachedFiles(gcp,parfiles)
 parfor ch = 1:64    
-    [data1,timestamps{ch},info{ch}] = load_open_ephys_data_faster([filepath filesep file_type '_CH' num2str(ch) '.continuous' ]);   
-    datach{ch} = data1;
+    [datach{ch,1}(1,:),~,~] = load_open_ephys_data_faster(fullfile(fpath,[file_type '_CH' num2str(ch) '.continuous']),'unscaledInt16');   
     disp(ch)
 end
 
@@ -44,16 +44,13 @@ end
 
 % butterworth bandpass filter
 [b,a] = butter(4, [0.0244 0.6104]);
-
-total_sample = length(datach{1});
-filtData = zeros(64,total_sample);
 parfor ch = 1:64
     disp(['filtering CH_' num2str(ch)])
-    filtData(ch,:) = filtfilt(b,a,datach{ch});
+    datach{ch,1}(1,:) = filtfilt(b,a,double(datach{ch,1}));
 end
 
 %Common median referencing
-
+filtData = cell2mat(datach);
 CommonMedian = median(filtData);
 st_dev = zeros(1,64);
 parfor ch = 1:64
@@ -72,7 +69,7 @@ Output.spiketime = {};
 for ch = 1:64
     tic
     disp(ch)
-    [peak,Output.spiketime{ch}] = findpeaks(-filtData(ch,:),'MinPeakHeight',-threshold(ch));
+    [peak,Output.spiketime{ch}] = findpeaks(-single(filtData(ch,:)),'MinPeakHeight',-threshold(ch));
     Output.spiketime{ch}(find(peak>1e8)) =[];
     test = 1;
     Output.spiketime{ch}(find(Output.spiketime{ch}>length(CommonMedian)-50)) = [];
