@@ -61,7 +61,7 @@ ops.crit            = .65;     % upper criterion for discarding spike repeates (
 ops.nFiltMax        = 10000;   % maximum "unique" spikes to consider (10000)		
 		
 % load predefined principal components (visualization only (Phy): used for features)		
-dd                  = load(fullfile(fpath,'PCspikes3.mat')); % you might want to recompute this from your own data		
+dd                  = load(fullfile(fpath,'PCspikes_94W.mat')); % you might want to recompute this from your own data		
 ops.wPCA            = dd.Wi(:,1:7);   % PCs 		
 		
 % options for posthoc merges (under construction)		

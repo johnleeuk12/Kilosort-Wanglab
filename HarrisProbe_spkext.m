@@ -9,18 +9,13 @@ close all
 % time unit = 10^-6 seconds 
 % Voltage unit = 10^-9 V
 % First trigger is trigger of recording ( needs to be verified)
-Gitpath = 'C:\Users\Seth\Documents\GitHub\';
-addpath(genpath([Gitpath 'KiloSort'])) % path to kilosort folder
-addpath(genpath([Gitpath 'npy-matlab'])) % path to npy-matlab scripts
-addpath(genpath([Gitpath 'analysis-tools']))
-
-% addpath(genpath('C:\Users\John.Lee\Documents\GitHub\copy\KiloSort')) % path to kilosort folder
-% addpath(genpath('C:\Users\John.Lee\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
-% addpath(genpath('C:\Users\John.Lee\Documents\GitHub\analysis-tools'))
-animal = 'M44D';
+addpath(genpath('C:\Users\John.Lee\Documents\GitHub\copy\KiloSort')) % path to kilosort folder
+addpath(genpath('C:\Users\John.Lee\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
+addpath(genpath('C:\Users\John.Lee\Documents\GitHub\analysis-tools'))
+animal = 'M94W';
 % filenb = '2018-12-05_13-11-28';
-% datapath = 'D:\Data\Experiments';
-% fpath = [datapath filesep animal filesep session_name];
+session_name = '2019-03-22_14-15-50';
+filepath = ['C:\DATA\OpenEphys' filesep animal filesep session_name];
 
 if ~exist(fpath, 'dir'); mkdir(fpath); end
 % filepath2 = ':\Data\Experiments\M44D'; %file path for .m files
@@ -179,7 +174,7 @@ end
 disp('Saving files...')
 % save([animal filenb '_proc.mat'],'Output','-v7.3')
 
-save(fullfile(fpath, '\PCspikes3.mat'),'Wi')
+save(fullfile(filepath, '\PCspikes_94W.mat'),'Wi')
 
 test
 
