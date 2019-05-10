@@ -26,6 +26,7 @@ kwe = 0; %// option for debugging, use when events are saved in .kwe format
 
 %// Loading spike times and cluster information, output from Kilosort
 spike_times_all = readNPY(fullfile(fpath, 'spike_times.npy'));
+% spike_times_all = double(spike_times_all)/fs;
 spike_times_all = double(spike_times_all);
 spike_clusters = readNPY(fullfile(fpath, 'spike_clusters.npy'));
 [Cids Cgroups] = readClusterGroupsCSV(fullfile(fpath, 'cluster_group.tsv'));
@@ -52,8 +53,15 @@ Cchannels = Cchannels.';
 % - 1 = mua
 % - 2 = good
 % - 3 = unsorted
+%*/
+% Cchannels1 = csvread(fullfile(fpath, 'channel_data.csv'),1,0);
+
 make_HarrisChannelMap(fpath);
 
+% chanMap = [23 8 13 6 14 10 11 19 16 22 24 29 25 9 15 4 12 26 ...
+%     28 20 21 32 27 63 1 31 2 17 3 7 30 5 59 36 57 61 ...
+%     47 64 33 18 48 46 34 62 35 60 45 37 38 42 49 53 ...
+%     51 55 40 44 56 43 58 54 39 52 50 41]; 
 
 chanMap = [27 32 21 3 25 30 19 5 23 17 24 7 20 29 26 9 ...
     22 31 28 11 16 13 1 15 18 12 14 10 8 4 6 2 ...
