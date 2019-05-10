@@ -96,12 +96,12 @@ channels  = chanMap(Cchannels);
 % end
 % channels = unique(channels);
 
-timestamps = {};
+timestamps1 = {};
 info = {};
 file_type = '100';
 parfor ch = 1:Nb_ch
     disp(['loading data from channel ' num2str(ch)])
-    [data1,timestamps{ch},info{ch}] = load_open_ephys_data_faster([fpath filesep file_type '_CH' num2str(ch) '.continuous' ]);    
+    [data1,timestamps1{ch},info1{ch}] = load_open_ephys_data_faster([fpath filesep file_type '_CH' num2str(ch) '.continuous' ]);    
     datach{ch} = data1;
 end
 
@@ -126,6 +126,18 @@ parfor ch = 1:Nb_ch
     disp(ch)
 end
 
+% spikes_time_test = [];
+% t= 1;
+% while t <length(filtData(64,:))
+%     if abs(filtData(64,t)) > 6*st_dev(64)
+%         spikes_time_test = [ spikes_time_test t];
+%         t = t+30
+%     else
+%         t = t+1;
+%     end
+% end
+
+
  %// extracting waveforms from processed data
 waveforms.raw = {};
 waveforms.mean = {};
@@ -135,8 +147,12 @@ for tid = 1:length(Cids)
     spike_times{tid} = spike_times_all(find(spike_clusters == id)); %*fs;
     waveforms.raw{tid} = zeros(length(spike_times{tid}),60);
     for t = 1:length(spike_times{tid})
-        waveforms.raw{tid}(t,:) = filtData(Cchannels(find(Cids==id)), ...
+%         waveforms.raw{tid}(t,:) = filtData(Cchannels(find(Cids==id)), ...
+%             round(spike_times{tid}(t,1)-19):round(spike_times{tid}(t,1)+40,1)); %
+        waveforms.raw{tid}(t,:) = filtData(channels(tid), ...
             round(spike_times{tid}(t,1)-19):round(spike_times{tid}(t,1)+40,1)); %
+%         waveforms.raw{tid}(t,:) = filtData(61, ...
+%             round(spike_times{tid}(t,1)-19):round(spike_times{tid}(t,1)+40,1)); %
     end
     waveforms.mean{tid} = mean(waveforms.raw{tid},1);
     waveforms.std{tid} = std(waveforms.raw{tid},[],1);
@@ -145,6 +161,34 @@ for tid = 1:length(Cids)
     waveforms.SNR{tid} = 20.*log10(peak_to_peak./noise);
 %        plot(waveforms.mean{1})
 end
+
+% figure
+% tid = 20;
+% for ch =1:64
+%     for t = 1:length(spike_times{tid})
+%         waveforms.raw{tid}(t,:) = filtData(37, ...
+%             round(spike_times{tid}(t,1)-19):round(spike_times{tid}(t,1)+40,1)); %
+% %         waveforms.raw{tid}(t,:) = filtData(61, ...
+% %             round(spike_times{tid}(t,1)-19):round(spike_times{tid}(t,1)+40,1)); %
+%     end
+%     waveforms.mean{tid} = mean(waveforms.raw{tid},1);
+% plot(waveforms.mean{tid})
+% % hold on 
+% drawnow
+% pause
+% end
+% figure
+% for id = 1:28
+% Nb_wave = min(size(waveforms.raw{id},1),100);
+% % Nb_wave = size(waveforms.raw{id});
+% subplot(6,5,id)
+% for n = 1:Nb_wave
+%     plot(waveforms.raw{id}(n,:))
+%     hold on
+% end
+%     plot(waveforms.mean{id},'LineWidth',2)
+% % end
+% end
 
 % %// extracting waveforms from processed data
 % waveforms.raw = {};
@@ -221,7 +265,7 @@ end
 if kwe ~=1
     file_type = '100';
     ch =1;
-    rec_start_time = timestamps{ch}(1);
+    rec_start_time = timestamps1{ch}(1);
     %[data1,timestamps1,info] = load_open_ephys_data_faster([fpath filesep file_type '_CH' num2str(ch) '.continuous' ]); 
     % 
     [data, timestamps, info] = load_open_ephys_data(fullfile(fpath, 'all_channels.events'));
@@ -280,7 +324,7 @@ raster.stim = {};
 raster.rep = {};
 raster.spikes = {};
 spikes_pooled = {};
-spike_times = {};
+spike_timesSU = {};
 rate_stim = {};
 
 
@@ -290,11 +334,11 @@ for id = 1:length(SU)
     raster.spikes{id} = [];
     spikes_pooled{id} = [];  
     rate_stim{id} = [];
-    spike_times{id} = spike_times_all(find(spike_clusters == Cids(SU(id))))/fs;
+    spike_timesSU{id} = spike_times_all(find(spike_clusters == Cids(SU(id))))/fs;
     for rep = 1:TotalReps
         %for raster
-        spikes1 = spike_times{id}(find(spike_times{id}>=start_stim_times(rep)-PreStim & ...
-            spike_times{id}<=end_stim_times(rep)+ PostStim)).';
+        spikes1 = spike_timesSU{id}(find(spike_timesSU{id}>=start_stim_times(rep)-PreStim & ...
+            spike_timesSU{id}<=end_stim_times(rep)+ PostStim)).';
         spikes1 = spikes1 - start_stim_times(rep);
         spikes_pooled{id} = [spikes_pooled{id} spikes1];
         raster.stim{id} = [raster.stim{id} data_new(rep,1)*ones(size(spikes1))];
@@ -302,11 +346,11 @@ for id = 1:length(SU)
         raster.spikes{id} = [raster.spikes{id} spikes1];
         
         %for rate
-        spikes2 = spike_times{id}(find(spike_times{id}>=start_stim_times(rep) & ...
-            spike_times{id}<=end_stim_times(rep))).';
+        spikes2 = spike_timesSU{id}(find(spike_timesSU{id}>=start_stim_times(rep) & ...
+            spike_timesSU{id}<=end_stim_times(rep))).';
         rate_stim{id}(data_new(rep,1),data_new(rep,2)) = length(spikes2);
-        spikes3 = spike_times{id}(find(spike_times{id}<=start_stim_times(rep) & ...
-            spike_times{id}>=start_stim_times(rep)-StimDur)).' ;
+        spikes3 = spike_timesSU{id}(find(spike_timesSU{id}<=start_stim_times(rep) & ...
+            spike_timesSU{id}>=start_stim_times(rep)-StimDur)).' ;
         rate_pre{id}(data_new(rep,1),data_new(rep,2)) = length(spikes3);
     end
 end
@@ -314,25 +358,25 @@ end
 
 %extract MU activity
 
-rasterMU.stim = [];
-rasterMU.rep = [];
-rasterMU.spikes = [];
-spike_timesMU = [];
-rate_stimMU =[];
-for id = 1:length(MU)
-    spike_timesMU = spike_times_all(find(spike_clusters == Cids(MU(id))))/fs;
-    for rep = 1:TotalReps
-        spikes = spike_timesMU(find(spike_timesMU >= start_stim_times(rep)-PreStim & ...
-            spike_timesMU <= end_stim_times(rep)+ PostStim)).';
-        spikes = spikes - start_stim_times(rep);
-        rasterMU.stim = [rasterMU.stim data_new(rep,1)*ones(size(spikes))];
-        rasterMU.rep = [rasterMU.rep data_new(rep,2)*ones(size(spikes))];
-        rasterMU.spikes = [rasterMU.spikes spikes];
-        spikes2 = spike_timesMU(find(spike_timesMU >= start_stim_times(rep) & ...
-            spike_timesMU <= end_stim_times(rep))).';
-        rate_stimMU(data_new(rep,1),data_new(rep,2)) = length(spikes2);
-    end
-end
+% rasterMU.stim = [];
+% rasterMU.rep = [];
+% rasterMU.spikes = [];
+% spike_timesMU = [];
+% rate_stimMU =[];
+% for id = 1:length(MU)
+%     spike_timesMU = spike_times_all(find(spike_clusters == Cids(MU(id))))/fs;
+%     for rep = 1:TotalReps
+%         spikes = spike_timesMU(find(spike_timesMU >= start_stim_times(rep)-PreStim & ...
+%             spike_timesMU <= end_stim_times(rep)+ PostStim)).';
+%         spikes = spikes - start_stim_times(rep);
+%         rasterMU.stim = [rasterMU.stim data_new(rep,1)*ones(size(spikes))];
+%         rasterMU.rep = [rasterMU.rep data_new(rep,2)*ones(size(spikes))];
+%         rasterMU.spikes = [rasterMU.spikes spikes];
+%         spikes2 = spike_timesMU(find(spike_timesMU >= start_stim_times(rep) & ...
+%             spike_timesMU <= end_stim_times(rep))).';
+%         rate_stimMU(data_new(rep,1),data_new(rep,2)) = length(spikes2);
+%     end
+% end
 
 stim_label  = x.stimulus_ch1(:,8);
 
@@ -340,7 +384,7 @@ SUrate = {};
 % figure
 for id = 1:length(SU)
     figure
-    title(['cluster ' num2str(Cids(SU(id))) ' channel ' num2str(channels(id))])
+    suptitle(['cluster ' num2str(Cids(SU(id))) ' channel ' num2str(channels(id))])
     set(gcf, 'Position', get(gcf,'Position').*[1 1 0 0] + [0 -600 1000 800]);
     %waveform
     subplot(2,2,1)
@@ -374,12 +418,14 @@ for id = 1:length(SU)
     title('tuning curve')
     subplot(2,2,3)
     time_step = [1:60]/fs*1e3;
-    Nb_wave = min(length(waveforms.raw{find(channels ==channels(id))}),100);
-    for n = 1:100    
-        plot(time_step,waveforms.raw{find(channels ==channels(id))}(n,:))
+%     Nb_wave = min(size(waveforms.raw{find(Cchannels ==Cchannels(id))},1),100);
+        Nb_wave = min(size(waveforms.raw{SU(id)},1),100);
+
+    for n = 1:Nb_wave    
+        plot(time_step,waveforms.raw{SU(id)}(n,:))
         hold on
     end
-        plot(time_step,waveforms.mean{find(channels ==channels(id))},'Linewidth',2,'Color','k')
+        plot(time_step,waveforms.mean{SU(id)},'Linewidth',2,'Color','k')
     title('waveform')
     xlabel('time (ms)')
     ylabel('mV');
@@ -434,37 +480,37 @@ end
 % 
 % 
 % 
-figure
-for id = 1:length(SU)
-    subplot(2,4,id)
-    time_step = [1:60]/fs*1e3;
-    for n = 1:100    
-        plot(time_step,waveforms.raw{find(channels ==channels(id))}(n,:))
-        hold on
-    end
-        plot(time_step,waveforms.mean{find(channels ==channels(id))},'Linewidth',2,'Color','k')
-    title([' channel ' num2str(channels(id))])
-    xlabel('time (ms)')
-    ylabel('mV');
-hold off
-end
+% figure
+% for id = 1:length(SU)
+%     subplot(2,4,id)
+%     time_step = [1:60]/fs*1e3;
+%     for n = 1:100    
+%         plot(time_step,waveforms.raw{find(Cchannels ==Cchannels(id))}(n,:))
+%         hold on
+%     end
+%         plot(time_step,waveforms.mean{find(Cchannels ==Cchannels(id))},'Linewidth',2,'Color','k')
+%     title([' channel ' num2str(Cchannels(id))])
+%     xlabel('time (ms)')
+%     ylabel('mV');
+% hold off
+% end
 
 
 
-
-
-figure
-% ylabel('Repetition rate (Hz)')
-
-
-hold on
-figure
-title('Multi Units ')
-area([0 StimDur StimDur 0],[0 TotalReps+5 0 TotalReps+5],'LineStyle','none','FaceColor',[.85 .85 1]);
-hold on 
-plot(rasterMU.spikes,nreps*(rasterMU.stim-1)+rasterMU.rep,'k.','MarkerSize',9);
-xlabel('time (s)')
-ylabel('reps')
-axis([-PreStim StimDur+ PostStim 0 TotalReps+1])
+% 
+% 
+% figure
+% % ylabel('Repetition rate (Hz)')
+% 
+% 
+% hold on
+% figure
+% title('Multi Units ')
+% area([0 StimDur StimDur 0],[0 TotalReps+5 0 TotalReps+5],'LineStyle','none','FaceColor',[.85 .85 1]);
+% hold on 
+% plot(rasterMU.spikes,nreps*(rasterMU.stim-1)+rasterMU.rep,'k.','MarkerSize',9);
+% xlabel('time (s)')
+% ylabel('reps')
+% axis([-PreStim StimDur+ PostStim 0 TotalReps+1])
 
 

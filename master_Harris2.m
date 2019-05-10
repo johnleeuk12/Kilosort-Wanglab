@@ -5,7 +5,7 @@ function master_Harris2()
 useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulated data takes 55 seconds on gtx 1080 + M2 SSD.
 
 
-session_name = '2019-04-05_14-05-45';
+session_name = '2019-04-05_14-57-25';
 
 fpath    = fullfile('C:\DATA\OpenEphys\M94W\', session_name); % where on disk do you want the simulation? ideally and SSD...
 file_type = '100';
@@ -15,7 +15,7 @@ if ~exist(fpath, 'dir'); mkdir(fpath); end
 rootZ = fpath;
 
 
-rmpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort'))
+% rmpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort'))
 addpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort2')) % path to kilosort folder
 addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
 

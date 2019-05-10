@@ -14,11 +14,12 @@ addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matl
 addpath(genpath('C:\Users\Seth\Documents\GitHub\analysis-tools-master'))
 animal = 'M94W';
 % filenb = '2018-12-05_13-11-28';
-session_name = '2019-04-05_14-05-45';
+session_name = '2019-04-05_14-57-25';
 filepath = ['C:\DATA\OpenEphys' filesep animal filesep session_name];
 file_type = '100';
 if ~exist(filepath, 'dir'); mkdir(filepath); end
 % filepath2 = ':\Data\Experiments\M44D'; %file path for .m files
+fpath  = filepath;
 addpath(genpath(fpath))
 % data1 = McsHDF5.McsData([filepath filesep animal filenb '.h5']);
 
