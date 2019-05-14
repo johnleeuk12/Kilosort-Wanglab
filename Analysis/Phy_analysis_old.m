@@ -106,7 +106,7 @@ parfor ch = 1:Nb_ch
 end
 
 %// Preprocessing data
-[b,a] = butter(4, [0.0244 0.6104]);
+[b,a] = butter(4, [0.0244 0.6104],'bandpass');
 
 
 total_sample = length(datach{1});
@@ -116,6 +116,12 @@ parfor ch = 1:Nb_ch
     filtData(ch,:) = filtfilt(b,a,datach{ch});
     
 end
+%     datr = filter(b,a,datach{37});
+%     datr = flipud(datr);
+%     datr = filter(b,a,datr);
+%         datr = flipud(datr);
+%         plot(datr)
+
 % 
 % // common median referencing
 CommonMedian = median(filtData);
@@ -126,6 +132,7 @@ parfor ch = 1:Nb_ch
     disp(ch)
 end
 
+filtData = int16(filtData);
 % spikes_time_test = [];
 % t= 1;
 % while t <length(filtData(64,:))
