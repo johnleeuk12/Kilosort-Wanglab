@@ -14,7 +14,7 @@ addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matl
 addpath(genpath('C:\Users\Seth\Documents\GitHub\analysis-tools-master'))
 animal = 'M94W';
 % filenb = '2018-12-05_13-11-28';
-session_name = '2019-04-05_14-57-25';
+session_name = '2019-04-04_15-23-39';
 filepath = ['C:\DATA\OpenEphys' filesep animal filesep session_name];
 file_type = '100';
 if ~exist(filepath, 'dir'); mkdir(filepath); end
