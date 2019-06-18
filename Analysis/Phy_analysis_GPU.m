@@ -64,15 +64,23 @@ toc
 
 tic
 
+
+
+
 gpu_data = gpuArray(int16(data_all));
-filtdata = [];
+filtdata = single([]);
 [b,a] = butter(4, [0.0244 0.6104]);
 disp('converted')
-for ch = 1:Nb_ch
-    disp(ch)
-    filtdata(ch,:) = filter(b,a,single(gpu_data(ch,:)));
-    filtdata(ch,:) = flipud(filtdata(ch,:));
-    filtdata(ch,:) = filter(b,a,filtdata(ch,:));
+Nbuff = 32*32;
+Nbatch = length(data_all(1,:))/Nbuff;
+
+for batch = 1:Nbatch
+    disp(batch)
+    ipoint = (batch-1)*Nbuff +1;
+    datr = filter(b,a,single(gpu_data(:,ipoint:ipoint+Nbuff-1)));
+    datr = flipud(datr);
+    datr = filter(b,a,datr);
+    filtdata(:,ipoint:ipoint+Nbuff-1) = gather_try(int16(datr));
 end
 toc
 
@@ -87,5 +95,21 @@ tic
 filtdata2 = filtfilt(b,a,data_all(1,:));
 toc
 
-for ch = 1:Nb_ch
+
+tic
+parfor ch = 1:Nb_ch
+    disp(ch)
+    filtdata2(ch,:) = filtfilt(b,a,data_all(ch,:));
+end
+toc
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     

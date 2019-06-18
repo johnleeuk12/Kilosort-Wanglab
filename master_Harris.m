@@ -6,7 +6,7 @@ useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulate
 ops.ephys_type = file_type;
 
 
-session_name = '2019-04-05_14-05-45';
+session_name = '2019-04-04_15-17-23';
 animal_name = 'M94W';
 file_type = '100';
 fpath    = fullfile('C:\DATA\OpenEphys\',animal_name, filesep , session_name); % where on disk do you want the simulation? ideally and SSD...

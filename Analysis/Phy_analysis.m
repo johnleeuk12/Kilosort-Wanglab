@@ -1,14 +1,9 @@
-% fpath    = 'C:\DATA\OpenEphys\M94W\2019-03-22_14-15-50'; % where on disk do you want the simulation? ideally and SSD...
-
-% rmpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort'))
-% addpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort2')) % path to kilosort folder
-% addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
-% addpath(genpath('C:\Users\Seth\Documents\GitHub\analysis-tools-master')) % path to npy-matlab scripts
+function Phy_analysis()
 
 
 PC_name = '426_John';
 animal_name = 'M94W';
-session_name = '2019-04-05_14-05-45';
+session_name = '2019-04-04_15-17-23';
 
 fpath = directories(PC_name,animal_name,session_name);
 
@@ -19,7 +14,7 @@ addpath(genpath('C:\DATA\xbz'));
 
 
 
-x = M94W0239; %// add option to choose file
+x = M94W0233; %// add option to choose file
 Nb_ch = 64;
 
 kwe = 0; %// option for debugging, use when events are saved in .kwe format
@@ -63,138 +58,143 @@ chanMap = [27 32 21 3 25 30 19 5 23 17 24 7 20 29 26 9 ...
 
 
 channels  = chanMap(Cchannels);
-% channels = unique(channels);
-%/* first row = id, 3rd row = ch number
-% create this file using phy, so that you have matching info on file number, channel number
-%*/
 
-%// in the case where single recording in two different sessions
-% x2 = M44D1076;
-
-%%// Extracting raw waveforms 
-
-%// This allows us to obtain raw/filtered waveforms for offline amplitude/ PCA analysis.
-
-% for ch = 1:length(channels)
-%     channels = [channels; abs(channels(ch)-4); abs(channels(ch)-3); abs(channels(ch)-2); abs(channels(ch)-1); ...
-%         abs(channels(ch)+1) ;abs(channels(ch)+2); abs(channels(ch)+3); abs(channels(ch)+4)];
-% end
-% channels = unique(channels);
-
+data_all = [];
 timestamps1 = {};
-info = {};
+info1 = {};
 file_type = '100';
+tic
+fprintf('Time %3.0fs. Loading data... \n', toc);
 parfor ch = 1:Nb_ch
-    disp(['loading data from channel ' num2str(ch)])
+%     disp(['loading data from channel ' num2str(ch)])
     [data1,timestamps1{ch},info1{ch}] = load_open_ephys_data_faster([fpath filesep file_type '_CH' num2str(ch) '.continuous' ]);    
-    datach{ch} = data1;
+    data_all(ch,:) = data1;
 end
 
-%// Preprocessing data
-[b,a] = butter(4, [0.0244 0.6104]);
+%/ the channel number (from 1 to 64) in the data is arranged by channel 
+%site id and not by channel mapping.
 
+%// filtering data
+fprintf('Time %3.0fs. filtering data... \n', toc);
 
-total_sample = length(datach{1});
-filtData = zeros(Nb_ch,total_sample);
-parfor ch = 1:Nb_ch
-    disp(['filtering CH_' num2str(ch)])
-    filtData(ch,:) = filtfilt(b,a,datach{ch});
-    
+gpu_data = gpuArray(int16(data_all));
+filtData = single([]);
+[b,a] = butter(4, [0.0244 0.6104],'bandpass');
+% [b,a] = butter(4, 500/fs,'low');
+Nbuff = 32*32;
+Nbatch = length(data_all(1,:))/Nbuff;
+for batch = 1:Nbatch
+    ipoint = (batch-1)*Nbuff +1;
+    datr = filter(b,a,single(gpu_data(:,ipoint:ipoint+Nbuff-1)).');
+    datr = flipud(datr);
+    datr = filter(b,a,datr);
+    datr = flipud(datr);
+    filtData(:,ipoint:ipoint+Nbuff-1) = gather_try(int16(datr.'));
 end
+
 % 
-% // common median referencing
-CommonMedian = median(filtData);
-st_dev = zeros(1,Nb_ch);
-parfor ch = 1:Nb_ch
-    filtData(ch,:) = filtData(ch,:)-CommonMedian;
-    st_dev(ch) = median(abs(filtData(ch,:))/0.6745);
-    disp(ch)
-end
-
-% spikes_time_test = [];
-% t= 1;
-% while t <length(filtData(64,:))
-%     if abs(filtData(64,t)) > 6*st_dev(64)
-%         spikes_time_test = [ spikes_time_test t];
-%         t = t+30
-%     else
-%         t = t+1;
+% chanMap2 = reshape(chanMap,4,16).';
+% dataCSD = zeros(30000,4,16);
+% for nx = 1:4
+%     for ny = 1:16
+%         dataCSD(:,nx,ny) = filtData(chanMap2(ny,nx),1:30000);
 %     end
 % end
+% %  
+% filtData3 = filtfilt(b,a,data_all.').';
+% filtData2 = zeros(64,length(filtData));
+% for ch = 1:64
+%     filtData2(ch,:) = filtData3(chanMap(ch),:);
+% end
+% %  
+% figure
+% for ch = 1:64
+%     plot(filtData(ch,1:30000)+ch*200)
+%     hold on
+% end
+% csdout = CSD(filtData2(:,1:1e5).',30000,2e-5,'inverse',1e-4);
+% filtData2 = [];
+% for ch = 1:64
+% filtData2(:,ch) = filtfilt(b,a,data_all(ch,:));
+% end
+% filtData2 = filtData2.';
+% 
+% // common median referencing
+fprintf('Time %3.0fs. Common median referencing... \n', toc);
+CommonMedian = median(filtData);
+st_dev = zeros(1,Nb_ch);
+for ch = 1:Nb_ch
+    filtData(ch,:) = filtData(ch,:)-CommonMedian;
+    st_dev(ch) = median(abs(filtData(ch,:))/0.6745);
+end
+
+fprintf('Time %3.0fs. Preprocessing complete! \n', toc);
+
+filtData = double(filtData);
 
 
+fprintf('Time %3.0fs. Extracting waveforms... \n', toc);
  %// extracting waveforms from processed data
 waveforms.raw = {};
 waveforms.mean = {};
 waveforms.std = {};
+waveforms.SNR = [];
 for tid = 1:length(Cids)
     id = Cids(tid);
     spike_times{tid} = spike_times_all(find(spike_clusters == id)); %*fs;
     waveforms.raw{tid} = zeros(length(spike_times{tid}),60);
     for t = 1:length(spike_times{tid})
-%         waveforms.raw{tid}(t,:) = filtData(Cchannels(find(Cids==id)), ...
-%             round(spike_times{tid}(t,1)-19):round(spike_times{tid}(t,1)+40,1)); %
         waveforms.raw{tid}(t,:) = filtData(channels(tid), ...
             round(spike_times{tid}(t,1)-19):round(spike_times{tid}(t,1)+40,1)); %
-%         waveforms.raw{tid}(t,:) = filtData(61, ...
-%             round(spike_times{tid}(t,1)-19):round(spike_times{tid}(t,1)+40,1)); %
     end
     waveforms.mean{tid} = mean(waveforms.raw{tid},1);
     waveforms.std{tid} = std(waveforms.raw{tid},[],1);
     peak_to_peak = max(waveforms.mean{tid})-min(waveforms.mean{tid});
     noise = mean(waveforms.std{tid}(1:10));
-    waveforms.SNR{tid} = 20.*log10(peak_to_peak./noise);
-%        plot(waveforms.mean{1})
+    waveforms.SNR(tid) = 20.*log10(peak_to_peak./noise);
 end
 
-% figure
-% tid = 20;
-% for ch =1:64
+% for ch = 1:64
+%     tid = 1;
+%     waveforms_test{ch} = zeros(length(spike_times{tid}),60);
 %     for t = 1:length(spike_times{tid})
-%         waveforms.raw{tid}(t,:) = filtData(37, ...
+%         waveforms_test{ch}(t,:) = filtData(ch, ...
 %             round(spike_times{tid}(t,1)-19):round(spike_times{tid}(t,1)+40,1)); %
-% %         waveforms.raw{tid}(t,:) = filtData(61, ...
-% %             round(spike_times{tid}(t,1)-19):round(spike_times{tid}(t,1)+40,1)); %
 %     end
-%     waveforms.mean{tid} = mean(waveforms.raw{tid},1);
-% plot(waveforms.mean{tid})
-% % hold on 
-% drawnow
-% pause
+%     waveforms_mean{ch} = mean(waveforms_test{ch},1);
 % end
+% 
+% 
 % figure
-% for id = 1:28
-% Nb_wave = min(size(waveforms.raw{id},1),100);
-% % Nb_wave = size(waveforms.raw{id});
-% subplot(6,5,id)
-% for n = 1:Nb_wave
-%     plot(waveforms.raw{id}(n,:))
-%     hold on
-% end
-%     plot(waveforms.mean{id},'LineWidth',2)
+% for ch = 1:64
+% % for n = 1:100
+% %     plot(waveforms_test{ch}(n,:))
+% %     hold on
 % % end
+% subplot(16,4,(ch))
+% plot(waveforms_mean{chanMap(ch)},'LineWidth',2)
+% axis([0 60 -200 100])
+% 
+% hold on
+% drawnow
+% title(num2str(chanMap(ch)))
 % end
+%     
 
-% %// extracting waveforms from processed data
-% waveforms.raw = {};
-% waveforms.mean = {};
-% waveforms.std = {};
-% for tid = 1:length(Cchannels(:,1))
-%     id = Cchannels(tid,1);
-%     spike_times{tid} = spike_times_all(find(spike_clusters == id)); %*fs;
-%     waveforms.raw{tid} = zeros(length(spike_times{tid}),60);
-%     for t = 1:length(spike_times{tid})
-%         waveforms.raw{tid}(t,:) = filtData(channels(find(Cchannels(:,1)==id)), ...
-%             round(spike_times{tid}(t,1)-19):round(spike_times{tid}(t,1)+40,1)); %
+
+% figure
+% bt = 1;
+% for tid = [17,18,19,27,28,29]
+%     subplot(3,2,bt)
+%     
+%     for nb = 1:100
+%     plot(waveforms.raw{tid}(nb,:))
+%     hold on
 %     end
-%     waveforms.mean{tid} = mean(waveforms.raw{tid},1);
-%     waveforms.std{tid} = std(waveforms.raw{tid},[],1);
-%     peak_to_peak = max(waveforms.mean{tid})-min(waveforms.mean{tid});
-%     noise = mean(waveforms.std{tid}(1:10));
-%     waveforms.SNR{tid} = 20.*log10(peak_to_peak./noise);
-% %        plot(waveforms.mean{1})
+%     plot(waveforms.mean{tid},'Linewidth',2)
+%     bt = bt+1;
+%     title(num2str(channels(tid)))
 % end
-
 
 % SNR
 % function [ SNR, meanSnippet, stdSnippet ] = AnalyzeSpikeSnippet( Snippets )
@@ -213,39 +213,6 @@ end
 
 
 
-% figure
-% for n = 1:4
-%     plot(waveforms.mean{n})
-%     hold on
-% end
-% figure
-% for n = 1:size(waveforms.raw{1},1)
-% %     if idx(n) ==2
-%     plot(waveforms.raw{1}(n,:))
-%     hold on
-% %     end
-% end
-
-%// PCA if needed 
-% [Wi,score,latent] = pca(waveforms.raw{1} );
-% % scatter(score(:,1),score(:,2));
-% 
-% X = [score(:,1) score(:,2)]; 
-% idx = kmeans(X,3);
-% 
-% 
-% figure
-% gscatter(score(:,1),score(:,2),idx)
-% %         
-% 
-% figure
-% for n=  1:80
-%     plot(waveforms{4}(n,:))
-%     hold on
-% end
-%         
-
-
 %%
 if kwe ~=1
     file_type = '100';
@@ -262,7 +229,9 @@ end
 
 %%// Extracting spiketimes
 
-SU = find(Cgroups == 2);    
+SU = find(Cgroups == 2);
+SU = intersect(SU,find(waveforms.SNR>10));
+
 MU = find(Cgroups == 1);
 
 
@@ -369,19 +338,14 @@ SUrate = {};
 % figure
 for id = 1:length(SU)
     figure
-    suptitle(['cluster ' num2str(Cids(SU(id))) ' channel ' num2str(channels(id))])
+    suptitle(['cluster ' num2str(Cids(SU(id))) ' channel ' num2str(Cchannels(id)) ' SNR: ' num2str(waveforms.SNR(SU(id)))])
     set(gcf, 'Position', get(gcf,'Position').*[1 1 0 0] + [0 -600 1000 800]);
-    %waveform
+    
+    %// this should change depending on stim_set. make it modular?
     subplot(2,2,1)
     SUrate{id}.mean = mean(rate_stim{id},2); %-mean(rate_pre{id},2);
     SUrate{id}.error = std(rate_stim{id},1,2);
     SUrate{id}.spont = mean(mean(rate_pre{id}));
-    %     subplot(3,4,id)
-    %     errorbar(2:2:50,SUrate{id}.mean(2:2:50),SUrate{id}.error(2:2:50))
-    %
-    %     hold on
-    %     errorbar(1:2:49,SUrate{id}.mean(1:2:49),SUrate{id}.error(1:2:49))
-    %
     
     xs = 1:length(stim_label);
     h =1.0;
@@ -389,7 +353,7 @@ for id = 1:length(SU)
         ys1(i) = gaussian_kern_reg(xs(i),xs,SUrate{id}.mean.',h);
         %         ys2(i) = gaussian_kern_reg(xs(i),xs,SUrate{id}.mean(2:2:50).',h);
     end
-    %     subplot(3,3,id)
+%         subplot(3,3,id)
     errorbar(stim_label,ys1/StimDur,SUrate{id}.error,'LineWidth',2);
     hold on
     
@@ -401,6 +365,8 @@ for id = 1:length(SU)
     xlabel('Hz')
     ylabel('firing rate (spikes/s)')
     title('tuning curve')
+    
+    %waveform
     subplot(2,2,3)
     time_step = [1:60]/fs*1e3;
 %     Nb_wave = min(size(waveforms.raw{find(Cchannels ==Cchannels(id))},1),100);
@@ -422,7 +388,13 @@ hold off
     plot(raster.spikes{id},nreps*(raster.stim{id}-1)+raster.rep{id},'k.','MarkerSize',9);
     %     pause
     xlabel('time (s)')
-    ylabel('reps')
+%     ylabel('reps')
+    ylabel('kHz')
+    yticks([1:nreps*2:TotalReps]+10)
+    for stim = 1:length(stim_label)/2
+        stim_ticks{stim}=num2str(round(stim_label(stim*2)*10)/10);
+    end
+    yticklabels(stim_ticks)
     axis([-PreStim StimDur+ PostStim 0 TotalReps+1])
     hold off
     title('rasterplot')
