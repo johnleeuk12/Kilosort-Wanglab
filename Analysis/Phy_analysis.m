@@ -6,7 +6,7 @@
 % addpath(genpath('C:\Users\Seth\Documents\GitHub\analysis-tools-master')) % path to npy-matlab scripts
 
 
-PC_name = '426_Analysis';
+PC_name = '426_John';
 animal_name = 'M94W';
 session_name = '2019-04-05_14-05-45';
 
