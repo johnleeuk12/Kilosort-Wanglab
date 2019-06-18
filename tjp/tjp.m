@@ -116,7 +116,7 @@ classdef tjp < handle
         StimDur = x.stimulus_ch1(:,5)*1e-3;        
         stim_info = x.data(find(x.data(:,3) == 1 & x.data(:,4) == -1),:);          
         data_new = stim_info;
-        
+        Stim_label = x.stimulus_ch1(:,8);    
         nreps = x.stimulus_ch1(1,4);
         nStim = max(x.stimulus_ch1(:,1));
         TotalReps = nStim*nreps;
@@ -132,7 +132,7 @@ classdef tjp < handle
             LFP_mean{st} = mean(LFP{st},3);
             csdout{st} = CSD(LFP_mean{st}.',30000,2E-5,0,'inverse',5E-4);
             drawnow
-            C{st} = smoothdata(csdout{st},1,'gaussian',4);
+            C{st} = smoothdata(csdout{st},1,'gaussian',10);
         end
         
         for st =1:length(LFP)
@@ -153,6 +153,7 @@ classdef tjp < handle
                 hold on
             end
             drawnow
+            title(['Stim =' num2str(Stim_label(st))])
         end
         
         
@@ -389,8 +390,15 @@ classdef tjp < handle
                     ylabel('reps')
                     yticks([1:nreps*2:TotalReps]+10)
                     yticks([1:nreps*2:TotalReps]+10)
-                    for stim = 1:length(stim_label)/2
-                        stim_ticks{stim}=num2str(round(stim_label(stim*2)*10)/10);
+                    stim_ticks = {};
+                    if length(stim_label)>2
+                        for stim = 1:length(stim_label)/2
+                            stim_ticks{stim}=num2str(round(stim_label(stim*2)*10)/10);
+                        end
+                    else
+                        for stim = 1:length(stim_label)
+                            stim_ticks{stim}=num2str(round(stim_label(stim)*10)/10);
+                        end
                     end
                     yticklabels(stim_ticks)
                     axis([-PreStim max(StimDur) + PostStim 0 TotalReps+1])

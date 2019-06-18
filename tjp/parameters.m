@@ -6,9 +6,9 @@ function x = parameters()
 
 x.PC_name = '426_Analysis';
 x.animal_name = 'M94W';
-x.session_name = '2019-04-05_14-05-45';
+x.session_name = '2019-04-05_15-21-05';
 x.file_type = '100';
-x.xbz_file_name = 'M94W0239';
+x.xbz_file_name = 'M94W0246';
 x.fpath = directories(x.PC_name,x.animal_name,x.session_name);
 x.fs = 30000;
 x.Nb_ch = 64;

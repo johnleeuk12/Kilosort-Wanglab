@@ -13,8 +13,8 @@ addpath(genpath('C:\Users\Seth\Documents\GitHub\copy\KiloSort')) % path to kilos
 addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
 addpath(genpath('C:\Users\Seth\Documents\GitHub\analysis-tools-master'))
 animal = 'M94W';
-% filenb = '2018-12-05_13-11-28';
-session_name = '2019-04-04_15-23-39';
+% filenb = '2019-04-03_14-07-05';
+session_name = '2019-04-03_14-07-05';
 filepath = ['C:\DATA\OpenEphys' filesep animal filesep session_name];
 file_type = '100';
 if ~exist(filepath, 'dir'); mkdir(filepath); end
