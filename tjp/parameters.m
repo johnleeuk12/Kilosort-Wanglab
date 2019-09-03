@@ -3,13 +3,14 @@ function x = parameters()
 
 %Modify parameters based on OpenEphys and xbz output. 
 
-
+addpath('C:\Users\Seth\Documents\GitHub\Kilosort-Wanglab\Analysis')
 x.PC_name = '426_Analysis';
-x.animal_name = 'M94W';
-x.session_name = '2019-04-05_15-21-05';
+x.animal_name = 'M12E';
+x.session_name = '2019-07-25_13-50-02';
 x.file_type = '100';
-x.xbz_file_name = 'M94W0246';
-x.fpath = directories(x.PC_name,x.animal_name,x.session_name);
+x.xbz_file_name = 'M12E0426';
+x.fpath1 = directories(x.PC_name,x.animal_name,x.session_name);
+x.fpath = [x.fpath1 x.session_name];
 x.fs = 30000;
 x.Nb_ch = 64;
 x.chanMap = [27 32 21 3 25 30 19 5 23 17 24 7 20 29 26 9 ...

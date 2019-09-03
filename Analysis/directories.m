@@ -16,4 +16,9 @@ addpath(genpath(fullfile(start_path, 'Documents\GitHub\npy-matlab'))); % path to
 addpath(genpath(fullfile(start_path,'Documents\GitHub', analysis_path)));
 
 addpath(fullfile('C:\DATA\OpenEphys\', animal_name));
-fpath = fullfile('C:\DATA\OpenEphys\', animal_name, filesep, session_name);% where on disk do you want the simulation? ideally and SSD...
+fpath = fullfile('C:\DATA\OpenEphys\', animal_name, filesep);
+%, session_name);% where on disk do you want the simulation? ideally and SSD...
+
+
+% addpath(fullfile('D:\DATA\Experiments\', animal_name));
+% fpath = fullfile('D:\DATA\Experiments\', animal_name, filesep, session_name);% where on disk do you want the simulation? ideally and SSD...

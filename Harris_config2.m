@@ -4,7 +4,7 @@ ops.parfor              = 1; % whether to use parfor to accelerate some parts of
 ops.verbose             = 1; % whether to print command line progress		
 ops.showfigures         = 0; % whether to plot figures during optimization		
 		
-ops.datatype            = 'openEphys';  % binary ('dat', 'bin') or 'openEphys'		
+ops.datatype            = 'dat';  % binary ('dat', 'bin') or 'openEphys'		
 ops.fbinary             = 'test_binary.dat'; % will be created for 'openEphys'	
 % ops.ephys_type          = file_type; % OpenEphys file type. check header number of one "Continuous" file
 ops.fproc               = fullfile(fpath, 'temp_wh.dat'); % residual from RAM of preprocessed data		
@@ -15,7 +15,7 @@ ops.root                = fullfile(fpath); % 'openEphys' only: where raw files a
 ops.fs                  = 30000;        % sampling rate		(omit if already in chanMap file)
 ops.NchanTOT            = 64;           % total number of channels (omit if already in chanMap file)
 ops.Nchan               = 64;           % number of active channels (omit if already in chanMap file)
-ops.Nfilt               = 192;           % number of clusters to use (2-4 times more than Nchan, should be a multiple of 32)     		
+ops.Nfilt               = 256;           % number of clusters to use (2-4 times more than Nchan, should be a multiple of 32)     		
 ops.nNeighPC            = 12; % visualization only (Phy): number of channnels to mask the PCs, leave empty to skip (12)		
 ops.nNeigh              = 16; % visualization only (Phy): number of neighboring templates to retain projections of (16)		
 		
@@ -52,7 +52,7 @@ ops.mergeT           = .1;           % upper threshold for merging (.1)
 ops.splitT           = .1;           % lower threshold for splitting (.1)		
 		
 % options for initializing spikes from data		
-ops.initialize      = 'fromData'; %'fromData' or 'no'		
+ops.initialize      = 'no'; %'fromData' or 'no'		
 ops.spkTh           = - 6;      % spike threshold in standard deviations (4)		
 ops.loc_range       = [3  1];  % ranges to detect peaks; plus/minus in time and channel ([3 1])		
 ops.long_range      = [30  6]; % ranges to detect isolated peaks ([30 6])		
@@ -61,8 +61,8 @@ ops.crit            = .65;     % upper criterion for discarding spike repeates (
 ops.nFiltMax        = 10000;   % maximum "unique" spikes to consider (10000)		
 		
 % load predefined principal components (visualization only (Phy): used for features)		
-dd                  = load(fullfile(fpath,'PCspikes_94W.mat')); % you might want to recompute this from your own data		
-ops.wPCA            = dd.Wi(:,1:7);   % PCs 		
+dd                  = [];%load(fullfile(fpath,'PCspikes_3.mat')); % you might want to recompute this from your own data		
+ops.wPCA            = [];%dd.Wi(:,1:7);   % PCs 		
 		
 % options for posthoc merges (under construction)		
 ops.fracse  = 0.1; % binning step along discriminant axis for posthoc merges (in units of sd)		
@@ -74,23 +74,23 @@ ops.ForceMaxRAMforDat   = 20e9; % maximum RAM the algorithm will try to use; on 
 %% New config options for Kilosort2
 
 % minimum firing rate on a "good" channel (0 to skip)
-ops.minfr_goodchannels = 0; 
+ops.minfr_goodchannels = 1; 
 
-ops.Th = [10 4];
+ops.Th = [20 4];
 % how important is the amplitude penalty (like in Kilosort1, 0 means not used, 10 is average, 50 is a lot) 
-ops.lam = 10;  
+ops.lam = 30;  
 
 % splitting a cluster at the end requires at least this much isolation for each sub-cluster (max = 1)
 ops.AUCsplit = 0.9; 
 
 % minimum spike rate (Hz), if a cluster falls below this for too long it gets removed
-ops.minFR = 1/50; 
+ops.minFR = 1/10; 
 
 % number of samples to average over (annealed from first to second value) 
 ops.momentum = [20 400]; 
 
 % spatial constant in um for computing residual variance of spike
-ops.sigmaMask = 30; 
+ops.sigmaMask = 10; 
 
 % threshold crossings for pre-clustering (in PCA projection space)
 ops.ThPre = 8; 
