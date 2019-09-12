@@ -169,7 +169,7 @@ classdef tjd < handle
                 obj.sequence = [obj.sequence seq];
                 
                 
-                obj.sequence = reshape(obj.sequence,7,[] );
+%                 obj.sequence = reshape(obj.sequence,7,[] );
             end
             %
             for seg_ls = 1:obj.L
@@ -206,14 +206,18 @@ classdef tjd < handle
                 grp2 = test(idx ~= u);
                 %                 grp3 = test(idx == 7);
                 idx2 = idx(idx ~=u);
-                Y1 = prctile(grp2(find(~isnan(grp2))),10); %5 percentile of group 2
-                Y2 = prctile(grp2,20);
+                Y1 = prctile(grp2(find(~isnan(grp2))),5); %5 percentile of group 2
+                Y2 = prctile(grp2,10);
                 plot([sqrt(Y1^2+Y1^2),0],[0,sqrt(Y1^2+Y1^2)],'--')
                 drawnow
                 if grp1(find(~isnan(grp1))) < Y1
                     Neuron_good(u) = 1;
-                elseif sum(grp1(find(~isnan(grp1))) < Y1)/length(grp1) >0.9
+                elseif sum(grp1(find(~isnan(grp1))) < Y1)/length(grp1(find(~isnan(grp1)))) >=0.9
                     Neuron_good(u) = 2;
+                elseif length(grp1(find(~isnan(grp1)))) <10
+                    if length(grp1(find(~isnan(grp1)))) - sum(grp1(find(~isnan(grp1))) < Y1)<2
+                        Neuron_good(u) = 2;
+                    end
                 end
                 C1 = unique(idx2(find(grp2<Y2)));
                 C2= unique(idx2(find(grp2 > Y2)));
@@ -257,7 +261,7 @@ classdef tjd < handle
         
         function obj = clean_cluster(obj,SU_nb)
             list_session = unique(obj.list_data.M12E_unit_list.data(:,4));
-            for seg_ls = 1:obj.L+1
+            for seg_ls = 1:obj.L
                 seg_1 = find(strcmp(list_session,obj.params.segment_list{seg_ls}));
                 %                 seg_2 = find(strcmp(list_session,obj.params.segment_list{seg_ls+1}));
                 
@@ -273,17 +277,21 @@ classdef tjd < handle
                     unit_file_name = [unit_file_name(1:end-size(num2str(A(seg_ls)),2)) num2str(A(seg_ls)) '.mat'];
                     x = load(unit_file_name);
                     if ~isempty(x.s_unit.templates)
+%                         x.s_unit.templates.best_ch = 60;
                         pool.channels = [pool.channels; [0 x.s_unit.templates.best_ch]];
                         pool.waveforms = cat(3,pool.waveforms, x.s_unit.waveforms{1}(x.s_unit.templates.best_ch,:,:));
                         pool.spike_times = [pool.spike_times; x.s_unit.spiketimes];
                     end
                     pool.waveforms_all(:,:) = pool.waveforms(1,:,:);
-                    
-                    
                     [~,score,~] = pca(pool.waveforms_all.');
-                    gm = fitgmdist(score(:,1:2),2);
-                    idx_cls = cluster(gm,score(:,1:2));
                     
+                    if size(pool.waveforms_all(1,:)) > 40
+                        gm = fitgmdist(score(:,1:2),2);
+                        idx_cls = cluster(gm,score(:,1:2));
+                        
+                    else
+                        idx_cls = kmeans(score(:,1:2),2);
+                    end
                     
                     
                     figure
@@ -411,10 +419,19 @@ classdef tjd < handle
                             
                     end
                     
+
                     
                     
                     
                 end
+            end
+            
+            prompt = 'accept cluster?';
+            pp = input(prompt);
+            switch pp
+                case 'y'
+                    obj.SU_clear(Su_nb) = 1;
+                case 'n'
             end
         end
         
@@ -432,10 +449,12 @@ classdef tjd < handle
             to_split = zeros(obj.L,1);
             
             for seg_ls = 1:obj.L+1
-                seg_1 = find(strcmp(list_session,obj.params.segment_list{seg_ls}));
+%                 seg_1 = find(strcmp(list_session,obj.params.segment_list{seg_ls}));
                 %                 seg_2 = find(strcmp(list_session,obj.params.segment_list{seg_ls+1}));
                 
-                A = find(strcmp(obj.list_data.M12E_unit_list.data(:,4),list_session{seg_1}));
+%                 A = find(strcmp(obj.list_data.M12E_unit_list.data(:,4),list_session{seg_1}));
+                A = obj.sequence(:,seg_ls);
+                
                 %                 B = find(strcmp(obj.list_data.M12E_unit_list.data(:,4),list_session{seg_2}));
                 pool.waveforms = [];
                 pool.index = [];
@@ -443,6 +462,7 @@ classdef tjd < handle
                 pool.spike_times = [];
                 pool.waveforms_all = [];
                 
+%                 if A(cluster1)~= 0 && A(cluster2)~= 0;
                 
                 unit_file_name = 'M12Eu000';
                 unit_file_name = [unit_file_name(1:end-size(num2str(A(cluster1)),2)) num2str(A(cluster1)) '.mat'];

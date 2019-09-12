@@ -6,7 +6,7 @@ classdef tjd < handle
     properties
         params = eval('parameters_distance');
         list_data = load('M12E_unit_list.mat');
-%         d_template = {};
+        %         d_template = {};
         merge_pair = [];
         SU_keep = [];
         SU_good = [];
@@ -39,7 +39,7 @@ classdef tjd < handle
                 pool.templates = {};
                 pool.templates.A = {};
                 pool.templates.B = {};
-%                 pool.id = [];
+                %                 pool.id = [];
                 
                 
                 for i = 1:length(A)
@@ -112,7 +112,7 @@ classdef tjd < handle
                             end
                             pool.templates.B{i}  = data;
                         end
-
+                        
                     end
                     %                 SpikeData = x.s_unit.waveforms{1};
                     %                 SpikeData= SpikeData';
@@ -169,9 +169,9 @@ classdef tjd < handle
                 obj.sequence = [obj.sequence seq];
                 
                 
-                obj.sequence = reshape(obj.sequence,7,[] );
+%                 obj.sequence = reshape(obj.sequence,7,[] );
             end
-%             
+            %
             for seg_ls = 1:obj.L
                 figure
                 imagesc(d_template{seg_ls})
@@ -206,14 +206,18 @@ classdef tjd < handle
                 grp2 = test(idx ~= u);
                 %                 grp3 = test(idx == 7);
                 idx2 = idx(idx ~=u);
-                Y1 = prctile(grp2(find(~isnan(grp2))),10); %5 percentile of group 2
-                Y2 = prctile(grp2,20);
+                Y1 = prctile(grp2(find(~isnan(grp2))),5); %5 percentile of group 2
+                Y2 = prctile(grp2,10);
                 plot([sqrt(Y1^2+Y1^2),0],[0,sqrt(Y1^2+Y1^2)],'--')
                 drawnow
                 if grp1(find(~isnan(grp1))) < Y1
-                    Neuron_good(u) = 1;                    
-                elseif sum(grp1(find(~isnan(grp1))) < Y1)/length(grp1) >0.9
+                    Neuron_good(u) = 1;
+                elseif sum(grp1(find(~isnan(grp1))) < Y1)/length(grp1(find(~isnan(grp1)))) >=0.9
                     Neuron_good(u) = 2;
+                elseif length(grp1(find(~isnan(grp1)))) <10
+                    if length(grp1(find(~isnan(grp1)))) - sum(grp1(find(~isnan(grp1))) < Y1)<2
+                        Neuron_good(u) = 2;
+                    end
                 end
                 C1 = unique(idx2(find(grp2<Y2)));
                 C2= unique(idx2(find(grp2 > Y2)));
@@ -224,9 +228,9 @@ classdef tjd < handle
                 axis([0 1 0 1])
             end
             
-%             test = sqrt(pool1(u,:).^2 + pool2(u,:).^2);
-%             le = ones(1,length(test));
-%             gscatter(test,le,idx,cmap,'o+*^x',10,'doleg','off');
+            %             test = sqrt(pool1(u,:).^2 + pool2(u,:).^2);
+            %             le = ones(1,length(test));
+            %             gscatter(test,le,idx,cmap,'o+*^x',10,'doleg','off');
             
             obj.merge_pair = [];
             for n = 1:obj.N
@@ -240,7 +244,7 @@ classdef tjd < handle
                 end
             end
             
-%             obj.merge_pair = merge_pair;
+            %             obj.merge_pair = merge_pair;
             i = 1;
             while i < size(obj.merge_pair,1)
                 if ~isempty(intersect(obj.merge_pair(:,2),obj.merge_pair(i,1)))
@@ -257,7 +261,7 @@ classdef tjd < handle
         
         function obj = clean_cluster(obj,SU_nb)
             list_session = unique(obj.list_data.M12E_unit_list.data(:,4));
-            for seg_ls = 1:obj.L+1
+            for seg_ls = 1:obj.L
                 seg_1 = find(strcmp(list_session,obj.params.segment_list{seg_ls}));
                 %                 seg_2 = find(strcmp(list_session,obj.params.segment_list{seg_ls+1}));
                 
@@ -273,138 +277,185 @@ classdef tjd < handle
                     unit_file_name = [unit_file_name(1:end-size(num2str(A(seg_ls)),2)) num2str(A(seg_ls)) '.mat'];
                     x = load(unit_file_name);
                     if ~isempty(x.s_unit.templates)
+%                         x.s_unit.templates.best_ch = 60;
                         pool.channels = [pool.channels; [0 x.s_unit.templates.best_ch]];
                         pool.waveforms = cat(3,pool.waveforms, x.s_unit.waveforms{1}(x.s_unit.templates.best_ch,:,:));
                         pool.spike_times = [pool.spike_times; x.s_unit.spiketimes];
                     end
-                   pool.waveforms_all(:,:) = pool.waveforms(1,:,:);
-                               
-                   
-                   [~,score,~] = pca(pool.waveforms_all.');
-                   gm = fitgmdist(score(:,1:2),2);
-                   idx_cls = cluster(gm,score(:,1:2));
-                   
-                   
-                
-                figure
-                subplot(2,2,1)
-                A_id = find(idx_cls ==1);
-                if length(A_id)<100
-                    idx = A_id;
-                else
-                    idx = randsample(A_id,100);
-                end
-                for i = idx
-                    plot(pool.waveforms_all(:,i))
-                    hold on
-                end
-                plot(mean(pool.waveforms_all(:,A_id),2),'LineWidth',2,'Color','k');
-                axis([0 60 -300 200])
-                
-                subplot(2,2,3)
-                B_id = 1:size(find(idx_cls ==2),1);
-                if length(B_id)<100
-                    idx = B_id;
-                else
-                    idx = randsample(B_id,100);
-                end
-                for i = idx
-                    plot(pool.waveforms_all(:,i))
-                    hold on
-                end
-                plot(mean(pool.waveforms_all(:,B_id),2),'LineWidth',2,'Color','k');
-                axis([0 60 -300 200])
-                
-                subplot(2,2,3)
-                gscatter(score(:,1),score(:,2),idx_cls)
-                
-                subplot(2,2,4)
-                ISI = pool.spike_times(2:end)-pool.spike_times(1:end-1);
-                
-                edges = -3.5:0.25:2;
-                [NN,~] = histcounts(ISI,10.^edges);
-                refract = sum(NN(1:2))*100/sum(NN);
-                histogram(ISI,10.^edges)
-                set(gca,'xscale','log')
-                xticks([1E-4 1E-3 1E-2 1E-1 1 10]);
-                xticklabels({0.0001, 0.001, 0.01, 0.1, 1, 10})
-                xlabel('time (ms)')
-                title([num2str(refract) '%']);
-                drawnow
-                
-                prompt = 'split? yes(1 2) cancel(c)';
-                p = input(prompt);
-                
-                switch p
-                    case '1'
-                        save_dir = 'D:\Data\M12E\Units';
+                    pool.waveforms_all(:,:) = pool.waveforms(1,:,:);
+                    [~,score,~] = pca(pool.waveforms_all.');
+                    
+                    if size(pool.waveforms_all(1,:)) > 40
+                        gm = fitgmdist(score(:,1:2),2);
+                        idx_cls = cluster(gm,score(:,1:2));
                         
-                        unitname = [unit_file_name(1:end-4) '_prev.mat'];
-                        if exist(unitname)==0
+                    else
+                        idx_cls = kmeans(score(:,1:2),2);
+                    end
+                    
+                    
+                    figure
+                    subplot(2,2,1)
+                    A_id = find(idx_cls ==1);
+                    if length(A_id)<100
+                        idx = A_id;
+                    else
+                        idx = randsample(A_id,100);
+                    end
+                    for i = idx
+                        plot(pool.waveforms_all(:,i))
+                        hold on
+                    end
+                    plot(mean(pool.waveforms_all(:,A_id),2),'LineWidth',2,'Color','k');
+                    axis([0 60 -300 200])
+                    
+                    hold off
+                    subplot(2,2,3)
+                    B_id = 1:size(find(idx_cls ==2),1);
+                    if length(B_id)<100
+                        idx = B_id;
+                    else
+                        idx = randsample(B_id,100);
+                    end
+                    for i = idx
+                        plot(pool.waveforms_all(:,i))
+                        hold on
+                    end
+                    plot(mean(pool.waveforms_all(:,B_id),2),'LineWidth',2,'Color','k');
+                    axis([0 60 -300 200])
+                    hold off
+                    subplot(2,2,2)
+                    gscatter(score(:,1),score(:,2),idx_cls)
+                    
+                    subplot(2,2,4)
+                    ISI = pool.spike_times(2:end)-pool.spike_times(1:end-1);
+                    
+                    edges = -3.5:0.25:2;
+                    [NN,~] = histcounts(ISI,10.^edges);
+                    refract = sum(NN(1:2))*100/sum(NN);
+                    histogram(ISI,10.^edges)
+                    set(gca,'xscale','log')
+                    xticks([1E-4 1E-3 1E-2 1E-1 1 10]);
+                    xticklabels({0.0001, 0.001, 0.01, 0.1, 1, 10})
+                    xlabel('time (ms)')
+                    title([num2str(refract) '%']);
+                    drawnow
+                    
+                    prompt = 'split? yes(1 2) cancel(c)';
+                    p = input(prompt);
+                    
+                    switch p
+                        case '1'
+                            save_dir = 'D:\Data\M12E\Units';
                             
-                            s_unit = {};
+                            unitname = [unit_file_name(1:end-4) '_prev.mat'];
+                            if exist(unitname)==0
+                                
+                                s_unit = {};
+                                s_unit = x.s_unit;
+                                save(fullfile(save_dir,unitname),'s_unit')
+                                
+                            end
                             s_unit = x.s_unit;
-                            save(fullfile(save_dir,unitname),'s_unit')
-                                               
-                        end
-                                                    s_unit = x.s_unit;
+                            
+                            %                         s_unit.waveforms = [];
+                            s_unit.waveforms{1} = x.s_unit.waveforms{1}(:,:,A_id);
+                            s_unit.spiketimes = pool.spike_times(A_id,1);
+                            
+                            data = zeros(64,60);
+                            %                  obj.templates{id}.best_ch = [];
+                            for ch = 1:64
+                                temp = [];
+                                temp(:,:) = s_unit.waveforms{1}(ch,:,:);
+                                [Y,Sig,X] = svd(temp,'econ');
+                                %                 sig = diag(Sig);%figure; semilogy(sig(sig>1),'kx-')
+                                k = 1:3;
+                                P = Y(:,k)*Sig(k,k)*X(:,k)';
+                                data(ch,:) = mean(P,2).';
+                            end
+                            
+                            s_unit.templates.data = data;
+                            
+                            save(fullfile(save_dir,unit_file_name),'s_unit')
+                            
+                            
+                        case '2'
+                            save_dir = 'D:\Data\M12E\Units';
+                            
+                            unitname = [unit_file_name(1:end-4) '_prev.mat'];
+                            if exist(unitname)==0
+                                
+                                s_unit = {};
+                                s_unit = x.s_unit;
+                                save(fullfile(save_dir,unitname),'s_unit')
+                                
+                            end
+                            s_unit = x.s_unit;
+                            
+                            %                         s_unit.waveforms = [];
+                            s_unit.waveforms{1} = x.s_unit.waveforms{1}(:,:,B_id);
+                            s_unit.spiketimes = pool.spike_times(B_id,1);
+                            
+                            data = zeros(64,60);
+                            %                  obj.templates{id}.best_ch = [];
+                            for ch = 1:64
+                                temp = [];
+                                temp(:,:) = s_unit.waveforms{1}(ch,:,:);
+                                [Y,Sig,X] = svd(temp,'econ');
+                                %                 sig = diag(Sig);%figure; semilogy(sig(sig>1),'kx-')
+                                k = 1:3;
+                                P = Y(:,k)*Sig(k,k)*X(:,k)';
+                                data(ch,:) = mean(P,2).';
+                            end
+                            
+                            s_unit.templates.data = data;
+                            
+                            save(fullfile(save_dir,unit_file_name),'s_unit')
+                            
+                            
+                            
+                            
+                        case 'c'
+                            
+                    end
+                    
 
-%                         s_unit.waveforms = [];
-                        s_unit.waveforms{1} = x.s_unit.waveforms{1}(:,:,A_id);
-                        s_unit.spiketimes = pool.spike_times(A_id,1);
-                        
-                        data = zeros(64,60);
-                        %                  obj.templates{id}.best_ch = [];
-                        for ch = 1:64
-                            temp = [];
-                            temp(:,:) = s_unit.waveforms{1}(ch,:,:);
-                            [Y,Sig,X] = svd(temp,'econ');
-                            %                 sig = diag(Sig);%figure; semilogy(sig(sig>1),'kx-')
-                            k = 1:3;
-                            P = Y(:,k)*Sig(k,k)*X(:,k)';
-                            data(ch,:) = mean(P,2).';
-                        end
-                        
-                        s_unit.templates.data = data;
-                        
-                        
-                        
-                        
-                    case '2'
-                        
-                        
-                        
-                        
-                    case 'c'
+                    
+                    
                     
                 end
-                
-                
-                
-                
-                end 
+            end
+            
+            prompt = 'accept cluster?';
+            pp = input(prompt);
+            switch pp
+                case 'y'
+                    obj.SU_clear(Su_nb) = 1;
+                case 'n'
             end
         end
         
         
-       
+        
         %%
         function obj = merge_cluster(obj,pair_nb)
-%             pair_nb = 1;
+            %             pair_nb = 1;
             list_session = unique(obj.list_data.M12E_unit_list.data(:,4));
-
+            
             cluster1 = obj.merge_pair(pair_nb,1);
             cluster2 = obj.merge_pair(pair_nb,2);
-
+            
             
             to_split = zeros(obj.L,1);
             
             for seg_ls = 1:obj.L+1
                 seg_1 = find(strcmp(list_session,obj.params.segment_list{seg_ls}));
-%                 seg_2 = find(strcmp(list_session,obj.params.segment_list{seg_ls+1}));
+                %                 seg_2 = find(strcmp(list_session,obj.params.segment_list{seg_ls+1}));
                 
                 A = find(strcmp(obj.list_data.M12E_unit_list.data(:,4),list_session{seg_1}));
-%                 B = find(strcmp(obj.list_data.M12E_unit_list.data(:,4),list_session{seg_2}));
+                
+                
+                %                 B = find(strcmp(obj.list_data.M12E_unit_list.data(:,4),list_session{seg_2}));
                 pool.waveforms = [];
                 pool.index = [];
                 pool.channels = [];
@@ -506,7 +557,7 @@ classdef tjd < handle
                 prompt = 'split pair? yes (1) no (0)';
                 
                 to_split(seg_ls) = input(prompt);
-            
+                
                 
             end
             
@@ -530,7 +581,7 @@ classdef tjd < handle
                         pool.spike_times = [];
                         pool.waveforms_all = [];
                         pool.waveforms_all2 = [];
-
+                        
                         %                         pool.waveforms_all = [];
                         
                         
@@ -620,7 +671,7 @@ classdef tjd < handle
                         
                         % PCA
                         subplot(2,2,2)
-
+                        
                         gscatter(score(:,1),score(:,2),idx_cls)
                         
                         
@@ -878,9 +929,9 @@ classdef tjd < handle
             
             
         end
-
         
-    
+        
+        
     end
     
 end
