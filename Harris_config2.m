@@ -78,7 +78,7 @@ ops.minfr_goodchannels = 1;
 
 ops.Th = [20 4];
 % how important is the amplitude penalty (like in Kilosort1, 0 means not used, 10 is average, 50 is a lot) 
-ops.lam = 30;  
+ops.lam = 20;  
 
 % splitting a cluster at the end requires at least this much isolation for each sub-cluster (max = 1)
 ops.AUCsplit = 0.9; 

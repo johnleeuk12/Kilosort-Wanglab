@@ -5,8 +5,8 @@ function master_Harris2()
 useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulated data takes 55 seconds on gtx 1080 + M2 SSD.
 
 
-% session_name ='2019-07-26_17-38-31';
-session_name = 'H6T3S1_concat';
+% session_name ='2019-07-04_15-04-38';
+session_name = 'H6T2S2_concat - Copy';
 Animal_name = 'M12E';
 fpath    = fullfile('C:\DATA\OpenEphys', filesep, Animal_name, filesep, session_name); % where on disk do you want the simulation? ideally and SSD...
 file_type = '100';
@@ -25,48 +25,6 @@ run(fullfile(pathToYourConfigFile, 'Harris_config2.m'))
 
 ops.trange = [0 Inf]; % time range to sort
 ops.ephys_type = file_type;
-
-% % concatanate file
-% list = {'2019-07-27_14-24-54','2019-07-27_14-26-39', '2019-07-27_14-28-36', '2019-07-27_14-30-40','2019-07-27_14-33-57','2019-07-27_14-38-11',   ...
-% '2019-07-27_14-40-28', '2019-07-27_14-50-19', '2019-07-27_14-59-45', '2019-07-27_15-07-30','2019-07-27_15-10-49','2019-07-27_15-18-16', ...
-% '2019-07-27_15-21-46','2019-07-27_15-26-37','2019-07-27_15-30-37','2019-07-27_15-39-42'};
-% 
-% list= {'2019-07-26_16-31-51'
-% '2019-07-26_16-34-50'
-% '2019-07-26_16-42-16'
-% '2019-07-26_16-47-30'
-% '2019-07-26_16-56-03'
-% '2019-07-26_17-05-34'
-% '2019-07-26_17-08-48'
-% '2019-07-26_17-15-29'
-% '2019-07-26_17-21-53'
-% '2019-07-26_17-26-29'
-% '2019-07-26_17-31-04'
-% '2019-07-26_17-32-54'
-% '2019-07-26_17-34-41'
-% '2019-07-26_17-36-30'
-% '2019-07-26_17-38-31'
-% };
-% 
-%  
-% fname = 'test_binary.dat';
-% filepath    = fullfile('C:\DATA\OpenEphys', filesep, Animal_name, filesep, list, filesep, fname);
-% buff= {};
-% % Big_buff = [];
-% tic
-% fileID = fopen(fullfile(fpath,filesep,fname),'w');
-% 
-% for t = 1:length(list)
-%     
-%     fid         = fopen(filepath{t}, 'r');
-%     buff{t} = fread(fid, '*int16');
-%     fclose(fid);
-%     disp(t)
-%     fwrite(fileID,buff{t},'*int16');
-%     
-%     toc
-% end
-% fclose(fileID);
 
 
 

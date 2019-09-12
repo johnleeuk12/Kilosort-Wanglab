@@ -215,41 +215,43 @@ classdef tjx < handle
             end
             
             for id = 1:length(SU)
-                s_unit = {};
-                s_unit.id = 1;
-                s_unit.depth = [];
-%                 s_unit.ch = CchanMap(Cchannels(SU(id)));
-                s_unit.templates = obj.templates{id};
-                s_unit.cid = Cids(SU(id));
-                s_unit.SU = SU;
-                s_unit.SU_good = obj.SU_good;
-                s_unit.SNR = obj.waveforms.SNR(id);
-                s_unit.waveforms = obj.waveforms.raw(id);
-%                 s_unit.spiketimes = spike_times_all(find(spike_clusters == Cids(SU(id))))/obj.params.fs;
-                s_unit.spiketimes = obj.spike_times{id};
-                s_unit.xbz_file_name = obj.params.xbz_file_name;
-                s_unit.amplitude = max(abs(obj.waveforms.mean{id}));
-                unitname= 'M12Eu001';
-                if isempty(M12E_unit_list.data)
-                    save(fullfile(save_dir,unitname),'s_unit')
-                    M12E_unit_list.data{1,1} = 1;
-                    M12E_unit_list.data{1,2} = s_unit.SNR;
-                    M12E_unit_list.data{1,3} = s_unit.amplitude;
-                    M12E_unit_list.data{1,4} = s_unit.xbz_file_name;
-                    M12E_unit_list.data{1,5} = s_unit.cid;
-                else
-                    unitname = [unitname(1:end-length(num2str(size((M12E_unit_list.data),1)+1))) num2str(size((M12E_unit_list.data),1)+1)];
-                    save(fullfile(save_dir,unitname),'s_unit')
-                    M12E_unit_list.data{size((M12E_unit_list.data),1)+1,1} = size((M12E_unit_list.data),1)+1;
-                    M12E_unit_list.data{size((M12E_unit_list.data),1),2} = s_unit.SNR;
-                    M12E_unit_list.data{size((M12E_unit_list.data),1),3} = s_unit.amplitude;
-                    M12E_unit_list.data{size((M12E_unit_list.data),1),4} = s_unit.xbz_file_name;
-                    M12E_unit_list.data{size((M12E_unit_list.data),1),5} = s_unit.cid;
-                    
+                if obj.SU_good(id) ==1
+                    s_unit = {};
+                    s_unit.id = 1;
+                    s_unit.depth = [];
+                    %                 s_unit.ch = CchanMap(Cchannels(SU(id)));
+                    s_unit.templates = obj.templates{id};
+                    s_unit.cid = Cids(SU(id));
+                    s_unit.SU = SU;
+                    s_unit.SU_good = obj.SU_good;
+                    s_unit.SNR = obj.waveforms.SNR(id);
+                    s_unit.waveforms = obj.waveforms.raw(id);
+                    %                 s_unit.spiketimes = spike_times_all(find(spike_clusters == Cids(SU(id))))/obj.params.fs;
+                    s_unit.spiketimes = obj.spike_times{id};
+                    s_unit.xbz_file_name = obj.params.xbz_file_name;
+                    s_unit.amplitude = max(abs(obj.waveforms.mean{id}));
+                    unitname= 'M12Eu001';
+                    if isempty(M12E_unit_list.data)
+                        save(fullfile(save_dir,unitname),'s_unit')
+                        M12E_unit_list.data{1,1} = 1;
+                        M12E_unit_list.data{1,2} = s_unit.SNR;
+                        M12E_unit_list.data{1,3} = s_unit.amplitude;
+                        M12E_unit_list.data{1,4} = s_unit.xbz_file_name;
+                        M12E_unit_list.data{1,5} = s_unit.cid;
+                    else
+                        unitname = [unitname(1:end-length(num2str(size((M12E_unit_list.data),1)+1))) num2str(size((M12E_unit_list.data),1)+1)];
+                        save(fullfile(save_dir,unitname),'s_unit')
+                        M12E_unit_list.data{size((M12E_unit_list.data),1)+1,1} = size((M12E_unit_list.data),1)+1;
+                        M12E_unit_list.data{size((M12E_unit_list.data),1),2} = s_unit.SNR;
+                        M12E_unit_list.data{size((M12E_unit_list.data),1),3} = s_unit.amplitude;
+                        M12E_unit_list.data{size((M12E_unit_list.data),1),4} = s_unit.xbz_file_name;
+                        M12E_unit_list.data{size((M12E_unit_list.data),1),5} = s_unit.cid;
+                        
+                    end
+                    save(fullfile(save_dir,'M12E_unit_list'),'M12E_unit_list')
                 end
-                save(fullfile(save_dir,'M12E_unit_list'),'M12E_unit_list')
             end
-        
+            
         end
         
         %%
@@ -283,7 +285,8 @@ classdef tjx < handle
                 obj.plot_type = 'User';
             end
             
-            if obj.analysis_code == 2367
+            %             if obj.analysis_code == 2367
+            if strcmp(x.analysis_type,'User: Trill_list.txt')
                 obj.analysis_type = 'User';
                 obj.plot_type = 'User';
             end
