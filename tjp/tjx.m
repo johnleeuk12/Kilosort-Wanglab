@@ -17,6 +17,8 @@ classdef tjx < handle
         seg_length = [];
         templates = {};
         SU_good = [];
+        start_times = [];
+        end_times = [];
     end
     
     
@@ -230,6 +232,8 @@ classdef tjx < handle
                     s_unit.spiketimes = obj.spike_times{id};
                     s_unit.xbz_file_name = obj.params.xbz_file_name;
                     s_unit.amplitude = max(abs(obj.waveforms.mean{id}));
+                    s_unit.start_times = obj.start_times;
+                    s_unit.end_times =obj.end_times;
                     unitname= 'M12Eu001';
                     if isempty(M12E_unit_list.data)
                         save(fullfile(save_dir,unitname),'s_unit')
@@ -261,11 +265,12 @@ classdef tjx < handle
             global SU  Cids  
             
             
-            [data, timestamps, info] = load_open_ephys_data(fullfile(obj.params.fpath, obj.params.session_name, 'all_channels.events'));
+            [~, timestamps, info] = load_open_ephys_data(fullfile(obj.params.fpath, obj.params.session_name, 'all_channels.events'));
             
             start_stim_times = timestamps(find(info.eventId ==1))-obj.params.rec_start_time;
             end_stim_times = timestamps(find(info.eventId ==0))-obj.params.rec_start_time;
-            
+            obj.start_times = start_stim_times;
+            obj.end_times = end_stim_times; 
             x = eval(obj.params.xbz_file_name);
             obj.analysis_code = x.analysis_code;
             obj.analysis_type = x.analysis_type;
