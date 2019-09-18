@@ -13,7 +13,7 @@ addpath(genpath(fullfile('D:\Data\M12E\Units')));
 
 x.hole_number = 6;
 x.track_number = 2;
-x.depth = 2870;
+x.depth = 3500;
 x.hemi = 'L';
 x.segment_list = {'M12E0434'
 'M12E0435'
