@@ -214,7 +214,7 @@ classdef tjd < handle
                     Neuron_good(u) = 1;
                 elseif sum(grp1(find(~isnan(grp1))) < Y1)/length(grp1(find(~isnan(grp1)))) >=0.9
                     Neuron_good(u) = 2;
-                elseif length(grp1(find(~isnan(grp1)))) <10 %Tenth percentile because sample size is too small.
+                elseif length(grp1(find(~isnan(grp1)))) <10
                     if length(grp1(find(~isnan(grp1)))) - sum(grp1(find(~isnan(grp1))) < Y1)<2
                         Neuron_good(u) = 2;
                     end
@@ -572,13 +572,12 @@ classdef tjd < handle
                     
                     for seg_ls = 1:obj.L+1
                         
-                        
-                        seg_1 = find(strcmp(list_session,obj.params.segment_list{seg_ls}));
-                        %                         seg_2 = find(strcmp(list_session,obj.params.segment_list{seg_ls+1}));
-                        
-                        A = obj.sequence(:,seg_ls);
                         if A(cluster1)~= 0 && A(cluster2)~= 0
                             
+                            seg_1 = find(strcmp(list_session,obj.params.segment_list{seg_ls}));
+                            %                         seg_2 = find(strcmp(list_session,obj.params.segment_list{seg_ls+1}));
+                            
+                            A = obj.sequence(:,seg_ls);
                             %                         B = find(strcmp(obj.list_data.M12E_unit_list.data(:,4),list_session{seg_2}));
                             pool.waveforms = [];
                             pool.index = [];

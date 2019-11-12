@@ -149,7 +149,7 @@ classdef tjx < handle
                         P = Y(:,k)*Sig(k,k)*X(:,k)';
                         obj.templates{id}.data(ch,:) = mean(P,2).';
                     end
-                    [~, obj.templates{id}.best_ch] = max(mean(abs(obj.templates{id}.data(:,:)),2));
+                    [~, obj.templates{id}.best_ch] = max(mean(abs(obj.templates{id}.data(:,10:50)),2));
                     %                 plot(obj.templates{id}(2,:))
                     
                     obj.waveforms.mean{id}(1,:) = mean(obj.waveforms.raw{id}(obj.templates{id}.best_ch,:,:),3);

@@ -6,7 +6,7 @@ useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulate
 
 
 % session_name ='2019-07-04_15-04-38';
-session_name = 'H6T2S2_concat - Copy';
+session_name = 'H6T3S1_concat';
 Animal_name = 'M12E';
 fpath    = fullfile('C:\DATA\OpenEphys', filesep, Animal_name, filesep, session_name); % where on disk do you want the simulation? ideally and SSD...
 file_type = '100';
