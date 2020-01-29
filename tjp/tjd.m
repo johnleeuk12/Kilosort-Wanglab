@@ -285,61 +285,72 @@ classdef tjd < handle
                     pool.waveforms_all(:,:) = pool.waveforms(1,:,:);
                     [~,score,~] = pca(pool.waveforms_all.');
                     
-                    if size(pool.waveforms_all(1,:)) > 40
-                        gm = fitgmdist(score(:,1:2),2);
-                        idx_cls = cluster(gm,score(:,1:2));
+                    
+                    good_split = 0;
+                    
+                    while good_split == 0
                         
-                    else
-                        idx_cls = kmeans(score(:,1:2),2);
+                        if size(pool.waveforms_all(1,:)) > 40
+                            gm = fitgmdist(score(:,1:2),2);
+                            idx_cls = cluster(gm,score(:,1:2));
+                            
+                        else
+                            idx_cls = kmeans(score(:,1:2),2);
+                        end
+                        
+                        
+                        figure
+                        subplot(2,2,1)
+                        A_id = find(idx_cls ==1);
+                        if length(A_id)<100
+                            idx = A_id;
+                        else
+                            idx = randsample(A_id,100);
+                        end
+                        for i = idx
+                            plot(pool.waveforms_all(:,i))
+                            hold on
+                        end
+                        plot(mean(pool.waveforms_all(:,A_id),2),'LineWidth',2,'Color','k');
+                        axis([0 60 -300 200])
+                        
+                        hold off
+                        subplot(2,2,3)
+                        B_id = 1:size(find(idx_cls ==2),1);
+                        if length(B_id)<100
+                            idx = B_id;
+                        else
+                            idx = randsample(B_id,100);
+                        end
+                        for i = idx
+                            plot(pool.waveforms_all(:,i))
+                            hold on
+                        end
+                        plot(mean(pool.waveforms_all(:,B_id),2),'LineWidth',2,'Color','k');
+                        axis([0 60 -300 200])
+                        hold off
+                        subplot(2,2,2)
+                        gscatter(score(:,1),score(:,2),idx_cls)
+                        
+                        subplot(2,2,4)
+                        ISI = pool.spike_times(2:end)-pool.spike_times(1:end-1);
+                        
+                        edges = -3.5:0.25:2;
+                        [NN,~] = histcounts(ISI,10.^edges);
+                        refract = sum(NN(1:2))*100/sum(NN);
+                        histogram(ISI,10.^edges)
+                        set(gca,'xscale','log')
+                        xticks([1E-4 1E-3 1E-2 1E-1 1 10]);
+                        xticklabels({0.0001, 0.001, 0.01, 0.1, 1, 10})
+                        xlabel('time (ms)')
+                        title([num2str(refract) '%']);
+                        drawnow
+                        
+                        prompt = 'Is split good? yes(1) no(0)';
+                        good_split = input(prompt);
+                        
                     end
                     
-                    
-                    figure
-                    subplot(2,2,1)
-                    A_id = find(idx_cls ==1);
-                    if length(A_id)<100
-                        idx = A_id;
-                    else
-                        idx = randsample(A_id,100);
-                    end
-                    for i = idx
-                        plot(pool.waveforms_all(:,i))
-                        hold on
-                    end
-                    plot(mean(pool.waveforms_all(:,A_id),2),'LineWidth',2,'Color','k');
-                    axis([0 60 -300 200])
-                    
-                    hold off
-                    subplot(2,2,3)
-                    B_id = 1:size(find(idx_cls ==2),1);
-                    if length(B_id)<100
-                        idx = B_id;
-                    else
-                        idx = randsample(B_id,100);
-                    end
-                    for i = idx
-                        plot(pool.waveforms_all(:,i))
-                        hold on
-                    end
-                    plot(mean(pool.waveforms_all(:,B_id),2),'LineWidth',2,'Color','k');
-                    axis([0 60 -300 200])
-                    hold off
-                    subplot(2,2,2)
-                    gscatter(score(:,1),score(:,2),idx_cls)
-                    
-                    subplot(2,2,4)
-                    ISI = pool.spike_times(2:end)-pool.spike_times(1:end-1);
-                    
-                    edges = -3.5:0.25:2;
-                    [NN,~] = histcounts(ISI,10.^edges);
-                    refract = sum(NN(1:2))*100/sum(NN);
-                    histogram(ISI,10.^edges)
-                    set(gca,'xscale','log')
-                    xticks([1E-4 1E-3 1E-2 1E-1 1 10]);
-                    xticklabels({0.0001, 0.001, 0.01, 0.1, 1, 10})
-                    xlabel('time (ms)')
-                    title([num2str(refract) '%']);
-                    drawnow
                     
                     prompt = 'split? yes(1 2) cancel(c)';
                     p = input(prompt);
@@ -570,7 +581,7 @@ classdef tjd < handle
                     save_dir = 'D:\Data\M12E\Units';
                     
                     
-                    for seg_ls = 1:obj.L+1
+                    for seg_ls = 1:obj.L
                         
                         
                         seg_1 = find(strcmp(list_session,obj.params.segment_list{seg_ls}));
@@ -619,7 +630,7 @@ classdef tjd < handle
                             pool.waveforms = cat(3,pool.waveforms,y.s_unit.waveforms{1}(:,:,:));
                             pool.index = [pool.index;ones(size(y.s_unit.waveforms{1},3),1)];
                             pool.spike_times = [pool.spike_times; y.s_unit.spiketimes];
-                            pool.waveforms_all2(:,:) = y.s_unit.waveforms{1}(y.s_unit.templates.best_ch,:,:);
+                            pool.waveforms_all2(:,:) = y.s_unit.waveforms{1}(x.s_unit.templates.best_ch,:,:); % changed to look at same channel
                             
                             pool.waveforms_all = [pool.waveforms_all pool.waveforms_all2];
                             
@@ -720,14 +731,17 @@ classdef tjd < handle
                                     s_unit.spiketimes = pool.spike_times(A_id);
                                     s_unit.xbz_file_name = x.s_unit.xbz_file_name;
                                     s_unit.SU_good = x.s_unit.SU_good;
-                                    save(fullfile(save_dir,unitname),'s_unit')
+                                    s_unit.templates = x.s_unit.templates;
+                                    save(fullfile(save_dir,unit_file_name),'s_unit')
                                     obj.SU_keep(cluster2) = 0;
                                 case 'c2'
                                     s_unit.waveforms = pool.waveforms(:,:,B_id);
                                     s_unit.spiketimes = pool.spike_times(B_id);
                                     s_unit.xbz_file_name = x.s_unit.xbz_file_name;
                                     s_unit.SU_good = x.s_unit.SU_good;
-                                    save(fullfile(save_dir,unitname),'s_unit')
+                                    s_unit.templates = x.s_unit.templates;
+                                    
+                                    save(fullfile(save_dir,unit_file_name),'s_unit')
                                     obj.SU_keep(cluster2) = 0;
                                     
                                 case 'm'
@@ -736,7 +750,9 @@ classdef tjd < handle
                                     s_unit.spiketimes = pool.spike_times_all;
                                     s_unit.xbz_file_name = x.s_unit.xbz_file_name;
                                     s_unit.SU_good = x.s_unit.SU_good;
-                                    save(fullfile(save_dir,unitname),'s_unit')
+                                    s_unit.templates = x.s_unit.templates;
+                                    
+                                    save(fullfile(save_dir,unit_file_name),'s_unit')
                                     
                                     obj.SU_keep(cluster2) = 0;
                                 case 'c'

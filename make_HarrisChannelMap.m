@@ -82,6 +82,9 @@ ycoords = abs(ycoords-330)+10;
 % assign them all to group 1. 
 
 kcoords   = ones(Nchannels,1);
+dead = find(chanMap == 40); %change here for bad channels
+
+kcoords(51) =0;
 
 % grouping of channels (i.e. tetrode groups)
 % at this point in Kilosort we do data = data(connected, :), ycoords =

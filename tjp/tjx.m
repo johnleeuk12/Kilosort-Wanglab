@@ -278,6 +278,8 @@ classdef tjx < handle
             if obj.analysis_code < 99
                 if length(unique(x.stimulus_ch1(:,3)))~= 1 && length(unique(x.stimulus_ch1(:,8)))~= 1
                     obj.analysis_type = 'FRA';
+                    obj.plot_type  = 'Tuning';
+                    
                 else
                     obj.plot_type  = 'Tuning';
                 end
