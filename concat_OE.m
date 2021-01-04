@@ -5,34 +5,24 @@ function concat_OE()
 useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulated data takes 55 seconds on gtx 1080 + M2 SSD.
 
 session_list = {
-'2019-12-28_14-15-08'
-'2019-12-28_14-16-53'
-'2019-12-28_14-19-29'
-'2019-12-28_14-23-40'
-'2019-12-28_14-27-11'
-'2019-12-28_14-29-18'
-'2019-12-28_14-37-53'
-'2019-12-28_14-44-16'
-'2019-12-28_14-52-09'
-'2019-12-28_15-02-29'
-'2019-12-28_15-10-43'
-'2019-12-28_15-17-21'
-'2019-12-28_15-19-12'
-'2019-12-28_15-21-31'
-'2019-12-28_15-33-00'
-'2019-12-28_15-34-52'
-'2019-12-28_15-36-53'
-'2019-12-28_15-41-05'
-'2019-12-28_15-42-57'
-'2019-12-28_15-46-08'
-'2019-12-28_15-52-42'
-'2019-12-28_16-01-55'
+'2021-01-03_14-23-11'
+'2021-01-03_14-28-30'
+'2021-01-03_14-32-27'
+'2021-01-03_14-47-56'
+'2021-01-03_15-04-45'
+'2021-01-03_15-41-48'
+'2021-01-03_16-01-00'
+'2021-01-03_16-04-36'
+'2021-01-03_16-07-53'
+'2021-01-03_16-11-14'
+'2021-01-03_16-14-54'
+
 
 };
-concat_folder_name = 'H8T3S1_concat';
+concat_folder_name = 'H4T6S1_concat';
 
 
-Animal_name = 'M12E';
+Animal_name = 'M60F';
 addpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort2')) % path to kilosort folder
 addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
 file_type = '100';
@@ -46,8 +36,15 @@ for s = 1:length(session_list)
     fpath    = fullfile('C:\DATA\OpenEphys', filesep, Animal_name, filesep, session_name); % where on disk do you want the simulation? ideally and SSD...
     rootZ = fpath;
     
-    if ~exist(fpath, 'dir'); mkdir(fpath); end
-    
+    try exist(fpath, 'dir');
+        %         ; mkdir(fpath); end
+    catch
+        disp('Error. No folder found')
+        disp([fpath ' does not exist'])
+        break
+
+    end
+
     % rmpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort'))
     addpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort2')) % path to kilosort folder
     addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts

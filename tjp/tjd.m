@@ -43,10 +43,18 @@ classdef tjd < handle
                 
                 
                 for i = 1:length(A)
-                    unit_file_name = 'M12Eu000';
+                    unit_file_name = 'M12Eu00000';
                     unit_file_name = [unit_file_name(1:end-size(num2str(A(i)),2)) num2str(A(i)) '.mat'];
                     x = load(unit_file_name);
-                    pool.waveforms = cat(3,pool.waveforms,x.s_unit.waveforms{1});
+                    try
+                        pool.waveforms = cat(3,pool.waveforms,x.s_unit.waveforms{1});
+                    catch                  
+                        tempmat = x.s_unit.waveforms;
+                        x.s_unit.waveforms = {};
+                        x.s_unit.waveforms{1} = [];
+                        x.s_unit.waveforms{1} = tempmat; 
+                        pool.waveforms = cat(3,pool.waveforms,x.s_unit.waveforms{1}); % weirdness where some waveforms are saved in cell and others in double...
+                    end
                     pool.index = [pool.index;A(i)*ones(size(x.s_unit.waveforms{1},1),1)];
                     %                     pool.id = [pool.id ; x.s_unit.cid];
                     
@@ -87,10 +95,20 @@ classdef tjd < handle
                 
                 %                 fprintf('Time %3.0fs. decompositing segment 2... \n', toc);
                 for i = 1:length(B)
-                    unit_file_name = 'M12Eu000';
+                    unit_file_name = 'M12Eu00000';
                     unit_file_name = [unit_file_name(1:end-size(num2str(B(i)),2)) num2str(B(i)) '.mat'];
                     x = load(unit_file_name);
-                    pool.waveforms = cat(3,pool.waveforms,x.s_unit.waveforms{1});
+                    
+                    try
+                        pool.waveforms = cat(3,pool.waveforms,x.s_unit.waveforms{1});
+                    catch
+                        tempmat = x.s_unit.waveforms;
+                        x.s_unit.waveforms = {};
+                        x.s_unit.waveforms{1} = [];
+                        x.s_unit.waveforms{1} = tempmat;
+                        pool.waveforms = cat(3,pool.waveforms,x.s_unit.waveforms{1}); % weirdness where some waveforms are saved in cell and others in double...
+                    end
+                    
                     pool.index = [pool.index;B(i)*ones(size(x.s_unit.waveforms{1},1),1)];
                     %                     pool.id = [pool.id ; x.s_unit.cid];
                     
@@ -151,7 +169,7 @@ classdef tjd < handle
                     for j =  1:length(obj.Nb)
                         if obj.SU_good.A(obj.Na(i))*obj.SU_good.B(obj.Nb(j)) ~= 0 %if SU on both segments, calculate distance
                             for ch = 1:64
-                                temp = sqrt(sum((pool.templates.A{i}(ch,:)- pool.templates.B{j}(ch,:)).^2));
+                                temp = sqrt(sum((pool.templates.A{i}(ch,:)- pool.templates.B{j}(ch,:)).^2)); %euclidean distance between waveform template
                                 d_template{seg_ls}(obj.Na(i),obj.Nb(j)) = d_template{seg_ls}(obj.Na(i),obj.Nb(j)) + temp;
                             end
                         else
@@ -178,6 +196,10 @@ classdef tjd < handle
                 
             end
             
+            %Combine template distance with physical distance. 
+            
+            
+            
             
             pool1 = [];
             pool2 = [];
@@ -199,6 +221,7 @@ classdef tjd < handle
             for u = 1:obj.N
                 figure
                 %                 subplot(6,5,u)
+                set(gcf, 'Position', [1000 300 1000 800]);
                 gscatter(pool1(u,:),pool2(u,:),idx,cmap,'o+*^x',10) %,'doleg','off')
                 hold on
                 test = sqrt(pool1(u,:).^2 + pool2(u,:).^2);
@@ -273,7 +296,7 @@ classdef tjd < handle
                 pool.spike_times = [];
                 pool.waveforms_all = [];
                 if A(seg_ls) ~=0
-                    unit_file_name = 'M12Eu000';
+                    unit_file_name = 'M12Eu00000';
                     unit_file_name = [unit_file_name(1:end-size(num2str(A(seg_ls)),2)) num2str(A(seg_ls)) '.mat'];
                     x = load(unit_file_name);
                     if ~isempty(x.s_unit.templates)
@@ -316,7 +339,8 @@ classdef tjd < handle
                         
                         hold off
                         subplot(2,2,3)
-                        B_id = 1:size(find(idx_cls ==2),1);
+%                         B_id = 1:size(find(idx_cls ==2),1);
+                        B_id = find(idx_cls ==2);
                         if length(B_id)<100
                             idx = B_id;
                         else
@@ -346,17 +370,19 @@ classdef tjd < handle
                         title([num2str(refract) '%']);
                         drawnow
                         
-                        prompt = 'Is split good? yes(1) no(0)';
+                        prompt = 'Is split good? yes(1) no(0) int';
                         good_split = input(prompt);
+%                         repmat(sprintf('\b'),1,length(prompt));
                         
                     end
                     
                     
-                    prompt = 'split? yes(1 2) cancel(c)';
+                    prompt = 'split? yes(1 2) cancel(c) int';
                     p = input(prompt);
+%                     repmat(sprintf('\b'),1,length(prompt));
                     
                     switch p
-                        case '1'
+                        case 1
                             save_dir = 'D:\Data\M12E\Units';
                             
                             unitname = [unit_file_name(1:end-4) '_prev.mat'];
@@ -390,7 +416,7 @@ classdef tjd < handle
                             save(fullfile(save_dir,unit_file_name),'s_unit')
                             
                             
-                        case '2'
+                        case 2
                             save_dir = 'D:\Data\M12E\Units';
                             
                             unitname = [unit_file_name(1:end-4) '_prev.mat'];
@@ -475,7 +501,7 @@ classdef tjd < handle
                 
                 if A(cluster1)~= 0 && A(cluster2)~= 0
                     
-                    unit_file_name = 'M12Eu000';
+                    unit_file_name = 'M12Eu00000';
                     unit_file_name = [unit_file_name(1:end-size(num2str(A(cluster1)),2)) num2str(A(cluster1)) '.mat'];
                     x = load(unit_file_name);
                     if ~isempty(x.s_unit.templates)
@@ -490,12 +516,28 @@ classdef tjd < handle
                     
                     
                     %                 fprintf('Time %3.0fs. decompositing segment 2... \n', toc);
-                    unit_file_name = 'M12Eu000';
+                    unit_file_name = 'M12Eu00000';
                     unit_file_name = [unit_file_name(1:end-size(num2str(A(cluster2)),2)) num2str(A(cluster2)) '.mat'];
                     y = load(unit_file_name);
-                    if ~isempty(y.s_unit.templates)
-                        pool.channels = [pool.channels; [1 y.s_unit.templates.best_ch]];
-                        pool.waveforms = cat(3,pool.waveforms,y.s_unit.waveforms{1}(y.s_unit.templates.best_ch,:,:));
+                    
+
+                     
+                     if ~isempty(y.s_unit.templates)
+                         pool.channels = [pool.channels; [1 y.s_unit.templates.best_ch]];
+                         
+                         
+                         try
+                             pool.waveforms = cat(3,pool.waveforms,y.s_unit.waveforms{1}(y.s_unit.templates.best_ch,:,:));
+                             
+                         catch
+                             tempmat = y.s_unit.waveforms;
+                             y.s_unit.waveforms = {};
+                             y.s_unit.waveforms{1} = [];
+                            y.s_unit.waveforms{1} = tempmat;
+                             pool.waveforms = cat(3,pool.waveforms,y.s_unit.waveforms{1}(y.s_unit.templates.best_ch,:,:));
+                        end
+                        
+%                         pool.waveforms = cat(3,pool.waveforms,y.s_unit.waveforms{1}(y.s_unit.templates.best_ch,:,:));
                         
                     end
                     pool.index = [pool.index;ones(size(y.s_unit.waveforms{1},3),1)];
@@ -575,7 +617,7 @@ classdef tjd < handle
             
             prompt = 'merge (m),split (s) or cancel (c)';
             p = input(prompt);
-            
+            close all
             switch p
                 case 'm'
                     save_dir = 'D:\Data\M12E\Units';
@@ -601,7 +643,7 @@ classdef tjd < handle
                             %                         pool.waveforms_all = [];
                             
                             
-                            unit_file_name = 'M12Eu000';
+                            unit_file_name = 'M12Eu00000';
                             unit_file_name = [unit_file_name(1:end-size(num2str(A(cluster1)),2)) num2str(A(cluster1)) '.mat'];
                             x = load(unit_file_name);
                             if ~isempty(x.s_unit.templates)
@@ -621,13 +663,25 @@ classdef tjd < handle
                                 save(fullfile(save_dir,unitname),'s_unit')
                             end
                             %                 fprintf('Time %3.0fs. decompositing segment 2... \n', toc);
-                            unit_file_name2 = 'M12Eu000';
+                            unit_file_name2 = 'M12Eu00000';
                             unit_file_name2 = [unit_file_name2(1:end-size(num2str(A(cluster2)),2)) num2str(A(cluster2)) '.mat'];
                             y = load(unit_file_name2);
                             if ~isempty(y.s_unit.templates)
                                 pool.channels = [pool.channels; [1 y.s_unit.templates.best_ch]];
                             end
-                            pool.waveforms = cat(3,pool.waveforms,y.s_unit.waveforms{1}(:,:,:));
+                            
+                            try
+                                pool.waveforms = cat(3,pool.waveforms,y.s_unit.waveforms{1}(:,:,:));
+                                
+                            catch
+                                tempmat = y.s_unit.waveforms;
+                                y.s_unit.waveforms = {};
+                                y.s_unit.waveforms{1} = [];
+                                y.s_unit.waveforms{1} = tempmat;
+                                pool.waveforms = cat(3,pool.waveforms,y.s_unit.waveforms{1}(:,:,:));
+                            end
+                            
+                            
                             pool.index = [pool.index;ones(size(y.s_unit.waveforms{1},3),1)];
                             pool.spike_times = [pool.spike_times; y.s_unit.spiketimes];
                             pool.waveforms_all2(:,:) = y.s_unit.waveforms{1}(x.s_unit.templates.best_ch,:,:); % changed to look at same channel
@@ -783,7 +837,7 @@ classdef tjd < handle
                             %                         pool.waveforms_all = [];
                             
                             
-                            unit_file_name = 'M12Eu000';
+                            unit_file_name = 'M12Eu00000';
                             unit_file_name = [unit_file_name(1:end-size(num2str(A(cluster1)),2)) num2str(A(cluster1)) '.mat'];
                             x = load(unit_file_name);
                             if ~isempty(x.s_unit.templates)
@@ -803,7 +857,7 @@ classdef tjd < handle
                                 save(fullfile(save_dir,unitname),'s_unit')
                             end
                             %                 fprintf('Time %3.0fs. decompositing segment 2... \n', toc);
-                            unit_file_name2 = 'M12Eu000';
+                            unit_file_name2 = 'M12Eu00000';
                             unit_file_name2 = [unit_file_name2(1:end-size(num2str(A(cluster2)),2)) num2str(A(cluster2)) '.mat'];
                             y = load(unit_file_name2);
                             if ~isempty(y.s_unit.templates)
@@ -962,7 +1016,7 @@ classdef tjd < handle
             end
             
             
-            
+           close all 
         end
         
         

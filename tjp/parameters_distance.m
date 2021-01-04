@@ -11,19 +11,18 @@ addpath(genpath(fullfile('D:\Data\M12E\Units')));
 
 
 
-x.hole_number = 2;
-x.track_number = 7;
-x.depth = 2900;
+x.hole_number = 13;
+x.track_number = 6;
+x.depth = 800;
 x.hemi = 'L';
-x.segment_list = {'M12E0260'
-'M12E0261'
-'M12E0262'
-'M12E0263'
-'M12E0264'
-'M12E0265'
-'M12E0266'
-'M12E0267'
-'M12E0268'
+x.segment_list = {
+    
+'M12E1417'
+'M12E1418'
+'M12E1419'
+'M12E1420'
+'M12E1421'
+'M12E1422'
 
 
     };

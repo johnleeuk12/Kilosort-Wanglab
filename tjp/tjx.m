@@ -1,3 +1,23 @@
+
+%{
+    tjx is the first stage in the reclustering step in the pipeline. 
+the inputs to tjx are cluster ids and spike times from Phy and Kilosort,
+and the output are spike times of units and other relevent unit information
+such as waveforms, best channel, and information on when and where it was
+recorded. the output is sent to tjd, which allows users to merge and split 
+units, as well as decide which to define as single and multiunits.
+
+    tjx runs in the order as shown in run_tjx.m. However, tjx can also
+extract layer information through CSD analysis. 
+
+    DO NOT MODIFY THE CODE without permission from John LEE. 07/12/2020
+
+
+%}
+
+
+
+
 classdef tjx < handle
     
     properties(Constant)
@@ -47,6 +67,7 @@ classdef tjx < handle
             end
             obj.seg_length = cumsum(temp);
             
+            
         end
         %%
         function obj = load_data_OE(obj)
@@ -70,8 +91,8 @@ classdef tjx < handle
         %%
         function obj = extract_units(obj)
             tic
-            global spike_times_all spike_clusters Cchannels Cids Cgroups new_channels SU 
-            %// filtering data
+            global spike_times_all spike_clusters Cchannels Cids Cgroups new_channels SU
+            %// preprocessing
             fprintf('Time %3.0fs. filtering data... \n', toc);
             
             gpu_data = gpuArray(int16(obj.raw_data));
@@ -113,19 +134,21 @@ classdef tjx < handle
             %             spike_times_all = {};
             spike_times_SU = {};
             SU = find(Cgroups == 2);
+
             obj.SU_good = ones(length(SU),1);
-            %             obj.seg_length(1) =  12737536;
-            %             obj.seg_length(2) = obj.seg_length(1) + 3003392;
             for id = 1:length(SU)
                 disp(id)
                 spike_times_SU{id} = spike_times_all(find(spike_clusters == Cids(SU(id)))); %/obj.params.fs;
+                
+                % we take 60 samples for waveform extraction, with 20
+                % samples before the threshold crossing and 40 afterwards.
                 
                 if obj.params.session_id > 1
                     spike_times_SU{id} = spike_times_SU{id}(find(spike_times_SU{id} < (obj.seg_length(obj.params.session_id)-40) & (obj.seg_length(obj.params.session_id-1)+20)< spike_times_SU{id}));
                     
                     spike_times_SU{id} = spike_times_SU{id} - obj.seg_length(obj.params.session_id-1);
                 else
-                    spike_times_SU{id} = spike_times_SU{id}(find(spike_times_SU{id} < obj.seg_length(obj.params.session_id)));
+                    spike_times_SU{id} = spike_times_SU{id}(find(spike_times_SU{id} < obj.seg_length(obj.params.session_id)-60));
                 end
                 
                 obj.waveforms.raw{id} = zeros(64,60,length(spike_times_SU{id}));
@@ -162,40 +185,20 @@ classdef tjx < handle
                 obj.spike_times{id} =  spike_times_SU{id}./obj.params.fs;
             end
             
-            %             for id = 1:length(SU)
-            %                 plot(obj.templates{id}(2,:))
-            %                 hold on
-            %             end
+
             fprintf('Time %3.0fs. Extracting waveforms... Done \n', toc)
-            
-            
-            %             for id = 1:length(SU)
-            %                 figure
-            %                 for ch = 1:64
-            %                 subplot(16,4,ch)
-            %                 plot(obj.templates{id}.data(ch,:))
-            %                 axis([0 60 -10 5]);
-            %                 end
-            %                 drawnow
-            % % %             end
-            %             figure
-            %             for n = 1:100
-            %             plot(obj.waveforms.raw{id}(64,:,n))
-            %             hold on
-            %             end
-            
-            
+
             
         end
         %%
         
         function obj = save_Units(obj)
-            global   Cchannels Cids  SU 
+            global   Cchannels Cids  SU
             
-%             [data, timestamps, info] = load_open_ephys_data(fullfile(obj.params.fpath, 'all_channels.events'));
-%             
-%             start_stim_times = timestamps(find(info.eventId ==1))-obj.params.rec_start_time;
-%             end_stim_times = timestamps(find(info.eventId ==0))-obj.params.rec_start_time;
+            %             [data, timestamps, info] = load_open_ephys_data(fullfile(obj.params.fpath, 'all_channels.events'));
+            %
+            %             start_stim_times = timestamps(find(info.eventId ==1))-obj.params.rec_start_time;
+            %             end_stim_times = timestamps(find(info.eventId ==0))-obj.params.rec_start_time;
             
             
             save_dir = 'D:\Data\M12E\Units';
@@ -234,7 +237,7 @@ classdef tjx < handle
                     s_unit.amplitude = max(abs(obj.waveforms.mean{id}));
                     s_unit.start_times = obj.start_times;
                     s_unit.end_times =obj.end_times;
-                    unitname= 'M12Eu001';
+                    unitname= 'M12Eu00001'; %03/03/20 changed from u001 to u00001
                     if isempty(M12E_unit_list.data)
                         save(fullfile(save_dir,unitname),'s_unit')
                         M12E_unit_list.data{1,1} = 1;
@@ -255,26 +258,36 @@ classdef tjx < handle
                     save(fullfile(save_dir,'M12E_unit_list'),'M12E_unit_list')
                 end
             end
-            
+            disp('Units saved')
         end
         
         %%
         
         function obj = Single_units(obj)
             
-            global SU  Cids  
+            %{
+            This function combines spike time information with stimulus 
+            information. It will read from xbz files that are outputs of
+            xb3 during recording sessions.
+            %}
             
+            
+            global SU  Cids
+            
+            % .events files have timestamps of when each stimuli was
+            % played. This needs to be synchronized with the timestamps
+            % determined by xb3. 
             
             [~, timestamps, info] = load_open_ephys_data(fullfile(obj.params.fpath, obj.params.session_name, 'all_channels.events'));
             
             start_stim_times = timestamps(find(info.eventId ==1))-obj.params.rec_start_time;
             end_stim_times = timestamps(find(info.eventId ==0))-obj.params.rec_start_time;
             obj.start_times = start_stim_times;
-            obj.end_times = end_stim_times; 
+            obj.end_times = end_stim_times;
             x = eval(obj.params.xbz_file_name);
             obj.analysis_code = x.analysis_code;
             obj.analysis_type = x.analysis_type;
-            %             switch obj.analysis_code
+            
             if obj.analysis_code < 99
                 if length(unique(x.stimulus_ch1(:,3)))~= 1 && length(unique(x.stimulus_ch1(:,8)))~= 1
                     obj.analysis_type = 'FRA';
@@ -332,7 +345,7 @@ classdef tjx < handle
             %             end
             for id = 1:length(SU)
                 if obj.SU_good(id) ==1
-%                     obj.spike_times{id} = obj.spike_times{id}./30000;
+                    %                     obj.spike_times{id} = obj.spike_times{id}./30000;
                     
                     raster.stim{id} = [];
                     raster.rep{id} = [];
@@ -369,243 +382,244 @@ classdef tjx < handle
             end
             
             
+            %plotting fi
             stim_label  = x.stimulus_ch1(:,8);
-            
-            for id = 1:length(SU)
-                if obj.SU_good(id) == 1
-                    figure
-                    suptitle(['cluster ' num2str(Cids(SU(id))) ' channel ' num2str(obj.templates{id}.best_ch) ' SNR: ' num2str(obj.waveforms.SNR(id))])
-                    set(gcf, 'Position', [400 300 1800 1000]);
-                    
-                    %// this should change depending on stim_set. make it modular?
-                    SUrate{id}.mean = mean(rate.stim{id},2); %-mean(rate_pre{id},2);
-                    SUrate{id}.error = std(rate.stim{id},1,2)/sqrt(nreps);
-                    SUrate{id}.spont = mean(mean(rate.pre{id}));
-                    
-                    
-                    
-                    %waveform
-                    subplot(2,3,4)
-                    time_step = [1:60]/obj.params.fs*1e3;
-                    Nb_wave = min(size(obj.spike_times{id},1),100);
-                    idx = 1:size(obj.spike_times{id},1);
-                    rand_select = randsample(idx,Nb_wave);
-                    for n = 1:length(rand_select)
-                        
-                        plot(time_step,obj.waveforms.raw{id}(obj.templates{id}.best_ch,:,rand_select(n)))
-                        hold on
-                    end
-                    plot(time_step,obj.waveforms.mean{id},'Linewidth',2,'Color','k')
-                    title('waveform')
-                    xlabel('time (ms)')
-                    ylabel('uV');
-                    hold off
-                    
-                    %// PCA
-                    Y = [];
-                    Y(:,:) = obj.waveforms.raw{id}(obj.templates{id}.best_ch,:,:);
-                    Y = Y.';
-                    [~,score,~] = pca(Y);
-                    
-                    X = [score(:,1) score(:,2)];
-                    idx = kmeans(X,2);
-                    subplot(2,3,2)
-                    gscatter(X(:,1),X(:,2),idx,'rb','+o',5)
-                    
-                    title('PCA')
-                    
-                    
-                    %// ISI plot
-                    subplot(2,3,5)
-                    ISI = obj.spike_times{id}(2:end)-obj.spike_times{id}(1:end-1);
-                    
-                    edges = -3.5:0.25:2;
-                    [N,~] = histcounts(ISI,10.^edges);
-                    refract = sum(N(1:2))*100/sum(N);
-                    histogram(ISI,10.^edges)
-                    set(gca,'xscale','log')
-                    xticks([1E-4 1E-3 1E-2 1E-1 1 10]);
-                    xticklabels({0.0001, 0.001, 0.01, 0.1, 1, 10})
-                    xlabel('time (ms)')
-                    title([num2str(refract) '%']);
-                    
-                    %                 histogram
-                    if strcmp(obj.plot_type,'Tuning') == 1
-                        
-                        %// Tuning curve
-                        subplot(2,3,1)
+            if obj.params.figure_on == 1
+                for id = 1:length(SU)
+                    if obj.SU_good(id) == 1
+                        figure
+                        suptitle(['cluster ' num2str(Cids(SU(id))) ' channel ' num2str(obj.templates{id}.best_ch) ' SNR: ' num2str(obj.waveforms.SNR(id))])
+                        set(gcf, 'Position', [400 000 1800 1000]);
+                        %// this should change depending on stim_set. make it modular?
+                        SUrate{id}.mean = mean(rate.stim{id},2); %-mean(rate_pre{id},2);
+                        SUrate{id}.error = std(rate.stim{id},1,2)/sqrt(nreps);
+                        SUrate{id}.spont = mean(mean(rate.pre{id}));
                         
                         
-                        errorbar(stim_label,SUrate{id}.mean,SUrate{id}.error,'LineWidth',2);
-                        hold on
                         
-                        plot(stim_label,ones(1,length(stim_label))*SUrate{id}.spont,'--k');
+                        %waveform
+                        subplot(2,3,4)
+                        time_step = [1:60]/obj.params.fs*1e3;
+                        Nb_wave = min(size(obj.spike_times{id},1),100);
+                        idx = 1:size(obj.spike_times{id},1);
+                        rand_select = randsample(idx,Nb_wave);
+                        for n = 1:length(rand_select)
+                            
+                            plot(time_step,obj.waveforms.raw{id}(obj.templates{id}.best_ch,:,rand_select(n)))
+                            hold on
+                        end
+                        plot(time_step,obj.waveforms.mean{id},'Linewidth',2,'Color','k')
+                        title('waveform')
+                        xlabel('time (ms)')
+                        ylabel('uV');
+                        hold off
+                        
+                        %// PCA
+                        Y = [];
+                        Y(:,:) = obj.waveforms.raw{id}(obj.templates{id}.best_ch,:,:);
+                        Y = Y.';
+                        [~,score,~] = pca(Y);
+                        
+                        X = [score(:,1) score(:,2)];
+                        idx = kmeans(X,2);
+                        subplot(2,3,2)
+                        gscatter(X(:,1),X(:,2),idx,'rb','+o',5)
+                        
+                        title('PCA')
+                        
+                        
+                        %// ISI plot
+                        subplot(2,3,5)
+                        ISI = obj.spike_times{id}(2:end)-obj.spike_times{id}(1:end-1);
+                        
+                        edges = -3.5:0.25:2;
+                        [N,~] = histcounts(ISI,10.^edges);
+                        refract = sum(N(1:2))*100/sum(N);
+                        histogram(ISI,10.^edges)
                         set(gca,'xscale','log')
+                        xticks([1E-4 1E-3 1E-2 1E-1 1 10]);
+                        xticklabels({0.0001, 0.001, 0.01, 0.1, 1, 10})
+                        xlabel('time (ms)')
+                        title([num2str(refract) '%']);
                         
-                        xticks(round((stim_label(1:4:end).')*1e2)*1e-2);
-                        xtickangle(45)
-                        xlabel('Hz')
-                        ylabel('firing rate (spikes/s)')
-                        title('tuning curve')
-                        
-                        
-                        %Raster plot
-                        subplot(2,3,[3 6])
-                        for st = 1:length(StimDur)
-                            rectangle('Position',[0 nreps*(st-1),StimDur(st) nreps],'FaceColor',[0.9,0.9,0.9],'EdgeColor','none')
-                        end
-                        hold on
-                        plot(raster.spikes{id},nreps*(raster.stim{id}-1)+raster.rep{id},'k.','MarkerSize',15);
-                        %     pause
-                        xlabel('time (s)')
-                        ylabel('reps')
-                        yticks([1:nreps*2:TotalReps]+10)
-                        yticks([1:nreps*2:TotalReps]+10)
-                        stim_ticks = {};
-                        if length(stim_label)>2
-                            for stim = 1:length(stim_label)/2
-                                stim_ticks{stim}=num2str(round(stim_label(stim*2)*10)/10);
+                        %                 histogram
+                        if strcmp(obj.plot_type,'Tuning') == 1
+                            
+                            %// Tuning curve
+                            subplot(2,3,1)
+                            
+                            
+                            errorbar(stim_label,SUrate{id}.mean,SUrate{id}.error,'LineWidth',2);
+                            hold on
+                            
+                            plot(stim_label,ones(1,length(stim_label))*SUrate{id}.spont,'--k');
+                            set(gca,'xscale','log')
+                            
+                            xticks(round((stim_label(1:4:end).')*1e2)*1e-2);
+                            xtickangle(45)
+                            xlabel('Hz')
+                            ylabel('firing rate (spikes/s)')
+                            title('tuning curve')
+                            
+                            
+                            %Raster plot
+                            subplot(2,3,[3 6])
+                            for st = 1:length(StimDur)
+                                rectangle('Position',[0 nreps*(st-1),StimDur(st) nreps],'FaceColor',[0.9,0.9,0.9],'EdgeColor','none')
                             end
-                        else
-                            for stim = 1:length(stim_label)
-                                stim_ticks{stim}=num2str(round(stim_label(stim)*10)/10);
+                            hold on
+                            plot(raster.spikes{id},nreps*(raster.stim{id}-1)+raster.rep{id},'k.','MarkerSize',15);
+                            %     pause
+                            xlabel('time (s)')
+                            ylabel('reps')
+                            yticks([1:nreps*2:TotalReps]+10)
+                            yticks([1:nreps*2:TotalReps]+10)
+                            stim_ticks = {};
+                            if length(stim_label)>2
+                                for stim = 1:length(stim_label)/2
+                                    stim_ticks{stim}=num2str(round(stim_label(stim*2)*10)/10);
+                                end
+                            else
+                                for stim = 1:length(stim_label)
+                                    stim_ticks{stim}=num2str(round(stim_label(stim)*10)/10);
+                                end
                             end
-                        end
-                        yticklabels(stim_ticks)
-                        axis([-PreStim max(StimDur) + PostStim 0 TotalReps+1])
-                        hold off
-                        title('rasterplot')
-                        
-                        drawnow()
-                        
-                    elseif strcmp(obj.plot_type,'VT') == 1
-                        stim_number = x.stimulus_ch1(:,1);
-                        stim_length = x.stimulus_ch1(:,5);
-                        for i = 9:22
-                            VT_para(i-8) = length(unique(x.stimulus_ch1(:,i)));
-                        end
-                        stim_label = x.stimulus_ch1(:,find(VT_para ~= 1)+8);
-                        if obj.analysis_code == 2320 || obj.analysis_code == 2335
-                            stim_label = x.stimulus_ch1(:,10);
-                        end
-                        
-                        
-                        %// Tuning Curve
-                        SUrate{id}.mean_fr = SUrate{id}.mean./stim_length;
-                        subplot(2,3,1)
-                        errorbar(stim_label,SUrate{id}.mean,SUrate{id}.error,'LineWidth',2);
-                        hold on
-                        plot(stim_label,ones(1,length(stim_label))*SUrate{id}.spont,'--k');
-                        %                     xticks(stim_number);
-                        %                     xticklabels(stim_label)
-                        xtickangle(45)
-                        %                 xlabel('Hz')
-                        ylabel('firing rate (spikes/s)')
-                        title('tuning curve')
-                        
-                        %// Rasterplot
-                        subplot(2,3,[3 6])
-                        for st = 1:length(StimDur)
-                            rectangle('Position',[0 nreps*(st-1),StimDur(st) nreps],'FaceColor',[0.9,0.9,0.9],'EdgeColor','none')
-                        end
-                        hold on
-                        plot(raster.spikes{id},nreps*(raster.stim{id}-1)+raster.rep{id},'k.','MarkerSize',15);
-                        %     pause
-                        xlabel('time (s)')
-                        ylabel('reps')
-                        yticks([1:nreps*2:TotalReps]+10)
-                        yticks([1:nreps*2:TotalReps]+10)
-                        stim_ticks = {};
-                        if length(stim_label)>2
-                            for stim = 1:length(stim_label)/2
-                                stim_ticks{stim}=num2str(round(stim_label(stim*2)*10)/10);
+                            yticklabels(stim_ticks)
+                            axis([-PreStim max(StimDur) + PostStim 0 TotalReps+1])
+                            hold off
+                            title('rasterplot')
+                            
+                            drawnow()
+                            
+                        elseif strcmp(obj.plot_type,'VT') == 1
+                            stim_number = x.stimulus_ch1(:,1);
+                            stim_length = x.stimulus_ch1(:,5);
+                            for i = 9:22
+                                VT_para(i-8) = length(unique(x.stimulus_ch1(:,i)));
                             end
-                        else
-                            for stim = 1:length(stim_label)
-                                stim_ticks{stim}=num2str(round(stim_label(stim)*10)/10);
-                            end
-                        end
-                        yticklabels(stim_ticks)
-                        axis([-PreStim max(StimDur) + PostStim 0 TotalReps+1])
-                        hold off
-                        title('rasterplot')
-                        
-                        drawnow()
-                        
-                    elseif strcmp(obj.plot_type,'User') == 1
-                        %// Tuning Curve
-                        stim_label = {};
-                        stim_number = x.stimulus_ch1(:,1);
-                        stim_length = x.stimulus_ch1(:,5);
-                        for st = 1: length(stim_number)
-                            idx1 = strfind(x.user_stimulus_desc_ch1{st},': ')+2;
-                            idx2 = strfind(x.user_stimulus_desc_ch1{st},'_m')-1;
-                            idx3 = strfind(x.user_stimulus_desc_ch1{st},'rev');
-                            stim_label{st} = x.user_stimulus_desc_ch1{st}(idx1:idx2);
-                            if isempty(idx3) ~=1
-                                stim_label{st} = [stim_label{st} '_rev'];
+                            stim_label = x.stimulus_ch1(:,find(VT_para ~= 1)+8);
+                            if obj.analysis_code == 2320 || obj.analysis_code == 2335
+                                stim_label = x.stimulus_ch1(:,10);
                             end
                             
+                            
+                            %// Tuning Curve
+                            SUrate{id}.mean_fr = SUrate{id}.mean./stim_length;
+                            subplot(2,3,1)
+                            errorbar(stim_label,SUrate{id}.mean,SUrate{id}.error,'LineWidth',2);
+                            hold on
+                            plot(stim_label,ones(1,length(stim_label))*SUrate{id}.spont,'--k');
+                            %                     xticks(stim_number);
+                            %                     xticklabels(stim_label)
+                            xtickangle(45)
+                            %                 xlabel('Hz')
+                            ylabel('firing rate (spikes/s)')
+                            title('tuning curve')
+                            
+                            %// Rasterplot
+                            subplot(2,3,[3 6])
+                            for st = 1:length(StimDur)
+                                rectangle('Position',[0 nreps*(st-1),StimDur(st) nreps],'FaceColor',[0.9,0.9,0.9],'EdgeColor','none')
+                            end
+                            hold on
+                            plot(raster.spikes{id},nreps*(raster.stim{id}-1)+raster.rep{id},'k.','MarkerSize',15);
+                            %     pause
+                            xlabel('time (s)')
+                            ylabel('reps')
+                            yticks([1:nreps*2:TotalReps]+10)
+                            yticks([1:nreps*2:TotalReps]+10)
+                            stim_ticks = {};
+                            if length(stim_label)>2
+                                for stim = 1:length(stim_label)/2
+                                    stim_ticks{stim}=num2str(round(stim_label(stim*2)*10)/10);
+                                end
+                            else
+                                for stim = 1:length(stim_label)
+                                    stim_ticks{stim}=num2str(round(stim_label(stim)*10)/10);
+                                end
+                            end
+                            yticklabels(stim_ticks)
+                            axis([-PreStim max(StimDur) + PostStim 0 TotalReps+1])
+                            hold off
+                            title('rasterplot')
+                            
+                            drawnow()
+                            
+                        elseif strcmp(obj.plot_type,'User') == 1
+                            %// Tuning Curve
+                            stim_label = {};
+                            stim_number = x.stimulus_ch1(:,1);
+                            stim_length = x.stimulus_ch1(:,5);
+                            for st = 1: length(stim_number)
+                                idx1 = strfind(x.user_stimulus_desc_ch1{st},': ')+2;
+                                idx2 = strfind(x.user_stimulus_desc_ch1{st},'_m')-1;
+                                idx3 = strfind(x.user_stimulus_desc_ch1{st},'rev');
+                                stim_label{st} = x.user_stimulus_desc_ch1{st}(idx1:idx2);
+                                if isempty(idx3) ~=1
+                                    stim_label{st} = [stim_label{st} '_rev'];
+                                end
+                                
+                            end
+                            SUrate{id}.mean_fr = SUrate{id}.mean./stim_length;
+                            subplot(2,3,1)
+                            errorbar(stim_number,SUrate{id}.mean,SUrate{id}.error,'LineWidth',2);
+                            hold on
+                            plot(stim_number,ones(1,length(stim_label))*SUrate{id}.spont,'--k');
+                            xticks(stim_number);
+                            xticklabels(stim_label)
+                            xtickangle(45)
+                            %                 xlabel('Hz')
+                            ylabel('firing rate (spikes/s)')
+                            title('tuning curve')
+                            
+                            
+                            
+                            %// Rasterplot
+                            
+                            subplot(2,3,[3 6])
+                            %                     area([0 StimDur StimDur 0],[0 TotalReps+5 0 TotalReps+5],'LineStyle','none','FaceColor',[.85 .85 1]);
+                            for st = 1:length(StimDur)
+                                rectangle('Position',[0 nreps*(st-1),StimDur(st) nreps],'FaceColor',[0.9,0.9,0.9],'EdgeColor','none')
+                            end
+                            hold on
+                            plot(raster.spikes{id},nreps*(raster.stim{id}-1)+raster.rep{id},'k.','MarkerSize',15);
+                            %     pause
+                            xlabel('time (s)')
+                            ylabel('reps')
+                            yticks([1:nreps:TotalReps]+5)
+                            
+                            yticklabels(stim_label)
+                            axis([-PreStim max(StimDur) + PostStim 0 TotalReps+5])
+                            hold off
+                            title('rasterplot')
+                            
+                            drawnow()
+                            
                         end
-                        SUrate{id}.mean_fr = SUrate{id}.mean./stim_length;
-                        subplot(2,3,1)
-                        errorbar(stim_number,SUrate{id}.mean,SUrate{id}.error,'LineWidth',2);
-                        hold on
-                        plot(stim_number,ones(1,length(stim_label))*SUrate{id}.spont,'--k');
-                        xticks(stim_number);
-                        xticklabels(stim_label)
-                        xtickangle(45)
-                        %                 xlabel('Hz')
-                        ylabel('firing rate (spikes/s)')
-                        title('tuning curve')
-                        
-                        
-                        
-                        %// Rasterplot
-                        
-                        subplot(2,3,[3 6])
-                        %                     area([0 StimDur StimDur 0],[0 TotalReps+5 0 TotalReps+5],'LineStyle','none','FaceColor',[.85 .85 1]);
-                        for st = 1:length(StimDur)
-                            rectangle('Position',[0 nreps*(st-1),StimDur(st) nreps],'FaceColor',[0.9,0.9,0.9],'EdgeColor','none')
-                        end
-                        hold on
-                        plot(raster.spikes{id},nreps*(raster.stim{id}-1)+raster.rep{id},'k.','MarkerSize',15);
-                        %     pause
-                        xlabel('time (s)')
-                        ylabel('reps')
-                        yticks([1:nreps:TotalReps]+5)
-                        
-                        yticklabels(stim_label)
-                        axis([-PreStim max(StimDur) + PostStim 0 TotalReps+5])
-                        hold off
-                        title('rasterplot')
-                        
-                        drawnow()
+                        %             elseif strcmp(obj.plot_type,'FRA') == 1
+                        %             elseif strcmp(obj.plot_type,'User') == 1
                         
                     end
-                    %             elseif strcmp(obj.plot_type,'FRA') == 1
-                    %             elseif strcmp(obj.plot_type,'User') == 1
                     
                 end
                 
+                %          figure
+                %          for id = 1:length(SU)
+                %              plot(obj.templates{id}.data(obj.templates{id}.best_ch,:))
+                %              hold on
+                %              pause(1)
+                %
+                %          end
+                %
+                
+                
+                
+                
+                
             end
-            
-            %          figure
-            %          for id = 1:length(SU)
-            %              plot(obj.templates{id}.data(obj.templates{id}.best_ch,:))
-            %              hold on
-            %              pause(1)
-            %
-            %          end
-            %
-            
-            
-            
-            
+
             
         end
-        
-        
         
         
     end

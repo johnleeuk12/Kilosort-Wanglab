@@ -55,8 +55,16 @@ chanMap = [27 32 21 3 25 30 19 5 23 17 24 7 20 29 26 9 ...
 % meaning not dead or used for non-ephys data
 
 connected = true(Nchannels, 1);
-% connected(1:2) = false;
+% connected(find(chanMap == 21)) = false;
+% connected(find(chanMap == 63)) = false;
+% connected(find(chanMap == 15)) = false;
+connected(1) = false;
+connected(25) = false;
 
+% connected(1:2) = false;
+% connected(17,7,11,15,38,55) = false;
+% connected(17,1) = false;
+% connected([1:4:end],1) = false;
 % now we define the horizontal (x) and vertical (y) coordinates of these
 % 34 channels. For dead or nonephys channels the values won't matter. Again
 % I will take this information from the specifications of the probe. These
@@ -82,9 +90,15 @@ ycoords = abs(ycoords-330)+10;
 % assign them all to group 1. 
 
 kcoords   = ones(Nchannels,1);
-dead = find(chanMap == 40); %change here for bad channels
+% kcoords(1:4:end,1) =NaN;
 
-kcoords(51) =0;
+
+
+% comment: what you see in openEphys is already channel arranged. ch17 is
+% kcoords 17.
+% dead = find(chanMap == 40); %change here for bad channels
+
+% kcoords(51) =0;
 
 % grouping of channels (i.e. tetrode groups)
 % at this point in Kilosort we do data = data(connected, :), ycoords =

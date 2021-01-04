@@ -1,36 +1,44 @@
 function x = parameters_x()
 
-
 %Modify parameters based on OpenEphys and xbz output. 
 
 addpath('C:\Users\Seth\Documents\GitHub\Kilosort-Wanglab\Analysis')
 x.PC_name = '426_Analysis';
 x.animal_name = 'M12E';
-x.list  = {'2019-07-11_15-59-38'
-'2019-07-11_16-01-27'
-'2019-07-11_16-03-17'
-'2019-07-11_16-05-08'
-'2019-07-11_16-07-13'
-'2019-07-11_16-09-23'
-'2019-07-11_16-16-28'
-'2019-07-11_16-25-00'
-'2019-07-11_16-28-33'
-'2019-07-11_16-36-06'
-'2019-07-11_16-37-55'
-'2019-07-11_16-40-23'
-'2019-07-11_16-51-20'
-'2019-07-11_16-59-55'
-'2019-07-11_17-04-09'
-
-
+x.list  = {
+'2020-01-04_16-08-52'
+'2020-01-04_16-12-52'
+'2020-01-04_16-15-23'
+'2020-01-04_16-19-42'
+'2020-01-04_16-22-15'
+'2020-01-04_16-25-41'
+'2020-01-04_16-36-01'
+'2020-01-04_16-37-53'
+'2020-01-04_16-40-06'
 
 };
-x.fpath2 = 'D:\Data\Experiments\M12E\H3T1S1_concat';
-x.session_id = 15;
-x.xbz_file_name = 'M12E0289';
+x.fpath2 = 'D:\Data\Experiments\M12E\H9T2S1_concat';
+x.session_id = 1;
+x.figure_on = 1;
+xbz_list = {
+'M12E0842'
+'M12E0843'
+'M12E0844'
+'M12E0845'
+'M12E0846'
+'M12E0847'
+'M12E0848'
+'M12E0849'
+'M12E0850'
 
+};
+
+
+
+x.xbz_file_name = xbz_list{x.session_id};
 
 x.session_name = x.list{x.session_id};
+
 x.file_type = '100';
 
 x.fpath = directories(x.PC_name,x.animal_name,x.session_name);

@@ -18,9 +18,8 @@ pause(0.1)
 
 a.Single_units
 
-
+pause(0.1)
 
 close all
 
-
-a.save_Units
+a.save_Units;
