@@ -5,9 +5,10 @@ function master_Harris3()
 %Currently Kilosort2 only supports GPU processing
 useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulated data takes 55 seconds on gtx 1080 + M2 SSD.
 
-concat_OE();
 % session_name ='2020-01-08_13-50-00';
-session_name = 'H4T6S1_concat';
+session_name = 'H10T2S1_concat';
+concat_OE(session_name);
+
 Animal_name = 'M60F';
 fpath    = fullfile('C:\DATA\OpenEphys', filesep, Animal_name, filesep, session_name); % where on disk do you want the simulation? ideally and SSD...
 file_type = '100';

@@ -5,7 +5,7 @@ classdef tjd < handle
     
     properties
         params = eval('parameters_distance');
-        list_data = load('M12E_unit_list.mat');
+        list_data = {};
         %         d_template = {};
         merge_pair = [];
         SU_keep = [];
@@ -22,16 +22,18 @@ classdef tjd < handle
     
     methods
         function obj = Cdistance(obj)
+            gpuDevice()
             tic
-            list_session = unique(obj.list_data.M12E_unit_list.data(:,4));
+            obj.list_data = load([obj.params.animal_name '_unit_list.mat']);
+            list_session = unique(obj.list_data.unit_list.data(:,4));
             d_template = {};
             for seg_ls = 1:length(obj.params.segment_list)-1
                 fprintf(['Time %3.0fs. calculating distance between ' obj.params.segment_list{seg_ls} ' and ' obj.params.segment_list{seg_ls+1}  ' ... \n'], toc);
                 seg_1 = find(strcmp(list_session,obj.params.segment_list{seg_ls}));
                 seg_2 = find(strcmp(list_session,obj.params.segment_list{seg_ls+1}));
                 
-                A = find(strcmp(obj.list_data.M12E_unit_list.data(:,4),list_session{seg_1}));
-                B = find(strcmp(obj.list_data.M12E_unit_list.data(:,4),list_session{seg_2}));
+                A = find(strcmp(obj.list_data.unit_list.data(:,4),list_session{seg_1}));
+                B = find(strcmp(obj.list_data.unit_list.data(:,4),list_session{seg_2}));
                 %             centroids = {};
                 pool.waveforms = [];
                 pool.index = [];
@@ -43,7 +45,7 @@ classdef tjd < handle
                 
                 
                 for i = 1:length(A)
-                    unit_file_name = 'M12Eu00000';
+                    unit_file_name = [obj.params.animal_name 'u00000'];
                     unit_file_name = [unit_file_name(1:end-size(num2str(A(i)),2)) num2str(A(i)) '.mat'];
                     x = load(unit_file_name);
                     try
@@ -68,11 +70,11 @@ classdef tjd < handle
                             for ch = 1:64
                                 temp = [];
                                 temp(:,:) = x.s_unit.waveforms{1}(ch,:,:);
-                                [Y,Sig,X] = svd(temp,'econ');
+                                [Y,Sig,X] = svd(gpuArray(temp),'econ');
                                 %                 sig = diag(Sig);%figure; semilogy(sig(sig>1),'kx-')
                                 k = 1:3;
                                 P = Y(:,k)*Sig(k,k)*X(:,k)';
-                                data(ch,:) = mean(P,2).';
+                                data(ch,:) = mean(gather(P),2).';
                             end
                             pool.templates.A{i}  = data;
                         end
@@ -95,7 +97,7 @@ classdef tjd < handle
                 
                 %                 fprintf('Time %3.0fs. decompositing segment 2... \n', toc);
                 for i = 1:length(B)
-                    unit_file_name = 'M12Eu00000';
+                    unit_file_name = [obj.params.animal_name 'u00000'];
                     unit_file_name = [unit_file_name(1:end-size(num2str(B(i)),2)) num2str(B(i)) '.mat'];
                     x = load(unit_file_name);
                     
@@ -122,11 +124,11 @@ classdef tjd < handle
                             for ch = 1:64
                                 temp = [];
                                 temp(:,:) = x.s_unit.waveforms{1}(ch,:,:);
-                                [Y,Sig,X] = svd(temp,'econ');
+                                [Y,Sig,X] = svd(gpuArray(temp),'econ');
                                 %                 sig = diag(Sig);%figure; semilogy(sig(sig>1),'kx-')
                                 k = 1:3;
                                 P = Y(:,k)*Sig(k,k)*X(:,k)';
-                                data(ch,:) = mean(P,2).';
+                                data(ch,:) = mean(gather(P),2).';
                             end
                             pool.templates.B{i}  = data;
                         end
@@ -149,7 +151,7 @@ classdef tjd < handle
                 obj.SU_good.B = x.s_unit.SU_good;
                 
                 
-                pool.peak = obj.list_data.M12E_unit_list.data(:,3);
+                pool.peak = obj.list_data.unit_list.data(:,3);
                 
                 %             B = B+39;
                 %             pool.channels(40:end,1) = B;
@@ -186,6 +188,13 @@ classdef tjd < handle
                 end
                 obj.sequence = [obj.sequence seq];
                 
+                if seg_ls == length(obj.params.segment_list)-1 % adding last segment of the neurons_list
+                    seq2 = obj.SU_good.B;
+                    for s = 1:length(obj.Nb)
+                        seq2(obj.Nb(s)) = B(s);
+                    end
+                    obj.sequence = [obj.sequence seq2];
+                end
                 
 %                 obj.sequence = reshape(obj.sequence,7,[] );
             end
@@ -283,7 +292,7 @@ classdef tjd < handle
         %%
         
         function obj = clean_cluster(obj,SU_nb)
-            list_session = unique(obj.list_data.M12E_unit_list.data(:,4));
+            list_session = unique(obj.list_data.unit_list.data(:,4));
             for seg_ls = 1:obj.L
                 seg_1 = find(strcmp(list_session,obj.params.segment_list{seg_ls}));
                 %                 seg_2 = find(strcmp(list_session,obj.params.segment_list{seg_ls+1}));
@@ -296,7 +305,7 @@ classdef tjd < handle
                 pool.spike_times = [];
                 pool.waveforms_all = [];
                 if A(seg_ls) ~=0
-                    unit_file_name = 'M12Eu00000';
+                    unit_file_name = [obj.params.animal_name 'u00000'];
                     unit_file_name = [unit_file_name(1:end-size(num2str(A(seg_ls)),2)) num2str(A(seg_ls)) '.mat'];
                     x = load(unit_file_name);
                     if ~isempty(x.s_unit.templates)
@@ -383,7 +392,7 @@ classdef tjd < handle
                     
                     switch p
                         case 1
-                            save_dir = 'D:\Data\M12E\Units';
+                            save_dir = fullfile('D:\Data\Units', filesep, obj.params.animal_name);
                             
                             unitname = [unit_file_name(1:end-4) '_prev.mat'];
                             if exist(unitname)==0
@@ -417,7 +426,7 @@ classdef tjd < handle
                             
                             
                         case 2
-                            save_dir = 'D:\Data\M12E\Units';
+                            save_dir = fullfile('D:\Data\Units', filesep, obj.params.animal_name);
                             
                             unitname = [unit_file_name(1:end-4) '_prev.mat'];
                             if exist(unitname)==0
@@ -477,7 +486,7 @@ classdef tjd < handle
         %%
         function obj = merge_cluster(obj,pair_nb)
             %             pair_nb = 1;
-            list_session = unique(obj.list_data.M12E_unit_list.data(:,4));
+            list_session = unique(obj.list_data.unit_list.data(:,4));
             
             cluster1 = obj.merge_pair(pair_nb,1);
             cluster2 = obj.merge_pair(pair_nb,2);
@@ -501,7 +510,7 @@ classdef tjd < handle
                 
                 if A(cluster1)~= 0 && A(cluster2)~= 0
                     
-                    unit_file_name = 'M12Eu00000';
+                    unit_file_name = [obj.params.animal_name 'u00000'];
                     unit_file_name = [unit_file_name(1:end-size(num2str(A(cluster1)),2)) num2str(A(cluster1)) '.mat'];
                     x = load(unit_file_name);
                     if ~isempty(x.s_unit.templates)
@@ -516,7 +525,7 @@ classdef tjd < handle
                     
                     
                     %                 fprintf('Time %3.0fs. decompositing segment 2... \n', toc);
-                    unit_file_name = 'M12Eu00000';
+                    unit_file_name = [obj.params.animal_name 'u00000'];
                     unit_file_name = [unit_file_name(1:end-size(num2str(A(cluster2)),2)) num2str(A(cluster2)) '.mat'];
                     y = load(unit_file_name);
                     
@@ -620,7 +629,7 @@ classdef tjd < handle
             close all
             switch p
                 case 'm'
-                    save_dir = 'D:\Data\M12E\Units';
+                    save_dir = fullfile('D:\Data\Units', filesep, obj.params.animal_name);
                     
                     
                     for seg_ls = 1:obj.L
@@ -643,7 +652,7 @@ classdef tjd < handle
                             %                         pool.waveforms_all = [];
                             
                             
-                            unit_file_name = 'M12Eu00000';
+                            unit_file_name = [obj.params.animal_name 'u00000'];
                             unit_file_name = [unit_file_name(1:end-size(num2str(A(cluster1)),2)) num2str(A(cluster1)) '.mat'];
                             x = load(unit_file_name);
                             if ~isempty(x.s_unit.templates)
@@ -663,7 +672,7 @@ classdef tjd < handle
                                 save(fullfile(save_dir,unitname),'s_unit')
                             end
                             %                 fprintf('Time %3.0fs. decompositing segment 2... \n', toc);
-                            unit_file_name2 = 'M12Eu00000';
+                            unit_file_name2 = [obj.params.animal_name 'u00000'];
                             unit_file_name2 = [unit_file_name2(1:end-size(num2str(A(cluster2)),2)) num2str(A(cluster2)) '.mat'];
                             y = load(unit_file_name2);
                             if ~isempty(y.s_unit.templates)
@@ -817,7 +826,7 @@ classdef tjd < handle
                     end
                 case 's'
                     
-                    save_dir = 'D:\Data\M12E\Units';
+                    save_dir = fullfile('D:\Data\Units', filesep, obj.params.animal_name);
                     
                     
                     for seg_ls = 1:obj.L

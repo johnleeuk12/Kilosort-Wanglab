@@ -251,7 +251,7 @@ Last modification: Dec. 1, 2020
                 end
                 
                 errorbar(obj.ax3,stim_label,obj.out_su.SUrate{ids}.mean,obj.out_su.SUrate{ids}.error,'LineWidth',2, 'Color', color);
-                hold on
+                hold(obj.ax3,'on')
                 plot(obj.ax3,stim_label,ones(1,length(stim_label))*obj.out_su.SUrate{ids}.spont,'--k');
                 
                 legend(obj.ax3, value);

@@ -58,8 +58,8 @@ connected = true(Nchannels, 1);
 % connected(find(chanMap == 21)) = false;
 % connected(find(chanMap == 63)) = false;
 % connected(find(chanMap == 15)) = false;
-connected(1) = false;
-connected(25) = false;
+
+% connected(64) = false;
 
 % connected(1:2) = false;
 % connected(17,7,11,15,38,55) = false;

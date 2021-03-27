@@ -1,25 +1,25 @@
-function concat_OE()
+function concat_OE(concat_folder_name)
 
 
 %% Configs. must change
 useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulated data takes 55 seconds on gtx 1080 + M2 SSD.
 
 session_list = {
-'2021-01-03_14-23-11'
-'2021-01-03_14-28-30'
-'2021-01-03_14-32-27'
-'2021-01-03_14-47-56'
-'2021-01-03_15-04-45'
-'2021-01-03_15-41-48'
-'2021-01-03_16-01-00'
-'2021-01-03_16-04-36'
-'2021-01-03_16-07-53'
-'2021-01-03_16-11-14'
-'2021-01-03_16-14-54'
+'2021-03-25_14-25-41'
+'2021-03-25_14-30-55'
+'2021-03-25_14-36-06'
+'2021-03-25_14-41-12'
+'2021-03-25_14-56-27'
+'2021-03-25_15-16-18'
+'2021-03-25_15-53-02'
+'2021-03-25_16-16-16'
+'2021-03-25_16-21-44'
+'2021-03-25_16-26-53'
+
 
 
 };
-concat_folder_name = 'H4T6S1_concat';
+%concat_folder_name = 'H4T7S1_concat';
 
 
 Animal_name = 'M60F';
@@ -56,7 +56,7 @@ for s = 1:length(session_list)
     ops.ephys_type = file_type;
     ops.datatype = 'openEphys';
 
-    %% this block runs all the steps of the algorithm
+    % this block runs all the steps of the algorithm
     fprintf('Looking for data inside %s \n', rootZ)
     
     % is there a channel map file in this folder?
