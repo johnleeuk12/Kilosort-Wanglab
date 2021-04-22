@@ -5,21 +5,16 @@ function concat_OE(concat_folder_name)
 useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulated data takes 55 seconds on gtx 1080 + M2 SSD.
 
 session_list = {
-'2021-03-25_14-25-41'
-'2021-03-25_14-30-55'
-'2021-03-25_14-36-06'
-'2021-03-25_14-41-12'
-'2021-03-25_14-56-27'
-'2021-03-25_15-16-18'
-'2021-03-25_15-53-02'
-'2021-03-25_16-16-16'
-'2021-03-25_16-21-44'
-'2021-03-25_16-26-53'
-
-
+'2021-02-14_15-49-53'
+'2021-02-14_15-58-11'
+'2021-02-14_16-04-50'
+'2021-02-14_16-13-06'
+'2021-02-14_16-23-48'
+'2021-02-14_16-34-42'
+'2021-02-14_16-45-36'
 
 };
-%concat_folder_name = 'H4T7S1_concat';
+% concat_folder_name = 'H11T4S1_concat';
 
 
 Animal_name = 'M60F';
@@ -28,7 +23,7 @@ addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matl
 file_type = '100';
 pathToYourConfigFile = 'C:\Users\Seth\Documents\GitHub\Kilosort-Wanglab'; % take from Github folder and put it somewhere else (together with the master_file)
 
-
+%%
 
 for s = 1:length(session_list)
     session_name =session_list{s};

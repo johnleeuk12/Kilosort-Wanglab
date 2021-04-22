@@ -6,7 +6,7 @@ function master_Harris3()
 useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulated data takes 55 seconds on gtx 1080 + M2 SSD.
 
 % session_name ='2020-01-08_13-50-00';
-session_name = 'H10T2S1_concat';
+session_name = 'H8T1S1_concat';
 concat_OE(session_name);
 
 Animal_name = 'M60F';
@@ -20,6 +20,8 @@ rootZ = fpath;
 
 % rmpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort'))
 addpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort2')) % path to kilosort folder
+% rmpath('C:\Users\Seth\Documents\GitHub\KiloSort2');
+% addpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort-main'))
 addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
 
 pathToYourConfigFile = 'C:\Users\Seth\Documents\GitHub\Kilosort-Wanglab'; % take from Github folder and put it somewhere else (together with the master_file)
@@ -36,6 +38,10 @@ fprintf('Looking for data inside %s \n', rootZ)
 ops.sig        = 20;  % spatial smoothness constant for registration
 ops.fshigh     = 300; % high-pass more aggresively
 ops.nblocks    = 5; % blocks for registration. 0 turns it off, 1 does rigid registration. Replaces "datashift" option. 
+
+% main parameter changes from Kilosort2.5 to v3.0
+% ops.Th       = [15 10];
+
 
 % is there a channel map file in this folder?
 fs = dir(fullfile(rootZ, 'chan*.mat'));
@@ -64,6 +70,10 @@ if strcmp(ops.datatype , 'openEphys')
 end
 disp('converting data... Done')
 toc
+
+
+
+
 
 % find the binary file
 % fs          = [dir(fullfile(rootZ, '*.bin')) dir(fullfile(rootZ, '*.dat'))];
