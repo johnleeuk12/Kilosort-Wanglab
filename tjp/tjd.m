@@ -16,6 +16,7 @@ classdef tjd < handle
         Na = [];
         Nb = [];
         sequence = [];
+        cid = [];
     end
     methods(Static)
     end
@@ -54,11 +55,11 @@ classdef tjd < handle
                         tempmat = x.s_unit.waveforms;
                         x.s_unit.waveforms = {};
                         x.s_unit.waveforms{1} = [];
-                        x.s_unit.waveforms{1} = tempmat; 
+                        x.s_unit.waveforms{1} = tempmat;
                         pool.waveforms = cat(3,pool.waveforms,x.s_unit.waveforms{1}); % weirdness where some waveforms are saved in cell and others in double...
                     end
                     pool.index = [pool.index;A(i)*ones(size(x.s_unit.waveforms{1},1),1)];
-                    %                     pool.id = [pool.id ; x.s_unit.cid];
+                    pool.id(i) = x.s_unit.cid;
                     
                     if ~isempty(x.s_unit.templates)
                         pool.channels = [pool.channels; [A(i) x.s_unit.templates.best_ch]];
@@ -91,9 +92,9 @@ classdef tjd < handle
                     %                 WTempA(i,:) = mean(P,1);
                 end
                 
+                obj.cid = pool.id; 
                 x = load(unit_file_name);
                 obj.SU_good.A = x.s_unit.SU_good;
-                
                 
                 %                 fprintf('Time %3.0fs. decompositing segment 2... \n', toc);
                 for i = 1:length(B)

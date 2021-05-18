@@ -365,10 +365,10 @@ classdef tjxS < handle
             [~, timestamps, info] = load_open_ephys_data(fullfile(obj.params.fpath, obj.params.session_name, 'all_channels.events'));
             
             %             start_stim_times = timestamps(find(info.eventId ==1))-29.9349;
-            start_stim_times = timestamps(find(info.eventId ==1))-obj.params.rec_start_time; %$-2.2870;      
+            start_stim_times = timestamps(find(info.eventId ==1))-obj.params.rec_start_time; %$-2.2870; 
             end_stim_times = timestamps(find(info.eventId ==0))-obj.params.rec_start_time; %-2.2870;
-%             start_stim_times = start_stim_times(1:410);
-%             end_stim_times = end_stim_times(1:410);
+%             start_stim_times = start_stim_times(2:end);
+%             end_stim_times = end_stim_times(3:end);
             obj.start_times = start_stim_times;
             obj.end_times = end_stim_times;
             obj.x = eval(obj.params.xbz_file_name);

@@ -5,16 +5,19 @@ function concat_OE(concat_folder_name)
 useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulated data takes 55 seconds on gtx 1080 + M2 SSD.
 
 session_list = {
-'2021-02-14_15-49-53'
-'2021-02-14_15-58-11'
-'2021-02-14_16-04-50'
-'2021-02-14_16-13-06'
-'2021-02-14_16-23-48'
-'2021-02-14_16-34-42'
-'2021-02-14_16-45-36'
+'2021-05-09_15-46-52'
+'2021-05-09_15-51-53'
+'2021-05-09_15-57-00'
+'2021-05-09_16-02-09'
+'2021-05-09_16-07-13'
+'2021-05-09_16-45-15'
+'2021-05-09_17-12-40'
+'2021-05-09_17-17-58'
+'2021-05-09_17-23-04'
+'2021-05-09_17-28-14'
 
 };
-% concat_folder_name = 'H11T4S1_concat';
+% concat_folder_name = 'H11T6S1_concat';
 
 
 Animal_name = 'M60F';
@@ -41,10 +44,10 @@ for s = 1:length(session_list)
     end
 
     % rmpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort'))
-    addpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort2')) % path to kilosort folder
-    addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
+%     addpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort2')) % path to kilosort folder
+%     addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
     
-    pathToYourConfigFile = 'C:\Users\Seth\Documents\GitHub\Kilosort-Wanglab'; % take from Github folder and put it somewhere else (together with the master_file)
+%     pathToYourConfigFile = 'C:\Users\Seth\Documents\GitHub\Kilosort-Wanglab'; % take from Github folder and put it somewhere else (together with the master_file)
     run(fullfile(pathToYourConfigFile, 'Harris_config2.m'))
     
     ops.trange = [0 Inf]; % time range to sort
@@ -66,9 +69,9 @@ for s = 1:length(session_list)
     
     tic; % start timer
     %
-    if ops.GPU
-        gpuDevice(1); % initialize GPU (will erase any existing GPU arrays)
-    end
+%     if ops.GPU
+%         gpuDevice(1); % initialize GPU (will erase any existing GPU arrays)
+%     end
     
     % Openephys to binary converter
     ops.ephys_type = file_type;
