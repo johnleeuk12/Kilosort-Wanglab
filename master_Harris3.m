@@ -6,7 +6,7 @@ function master_Harris3()
 useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulated data takes 55 seconds on gtx 1080 + M2 SSD.
 
 % session_name ='2020-01-08_13-50-00';
-session_name = 'H14T5S1_concat';
+session_name = 'H15T2S1_concat';
 concat_OE(session_name);
 
 Animal_name = 'M60F';
