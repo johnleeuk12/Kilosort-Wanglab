@@ -21,7 +21,6 @@ x.list  = {
 
 
 
-};
 
 x.fpath2 = path2;
 x.session_id = SID;
@@ -38,7 +37,6 @@ xbz_list = {
 'M160E0044'
 'M160E0045'
 
-};
 
 x.xbz_file_name = xbz_list{x.session_id};
 

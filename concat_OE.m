@@ -17,7 +17,8 @@ session_list = {
 
 
 };
-% concat_folder_name = 'H4T4S1_concat';
+
+% concat_folder_name = 'H11T6S1_concat';
 
 
 Animal_name = 'M160E';
@@ -44,10 +45,10 @@ for s = 1:length(session_list)
     end
 
     % rmpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort'))
-    addpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort2')) % path to kilosort folder
-    addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
+%     addpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort2')) % path to kilosort folder
+%     addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
     
-    pathToYourConfigFile = 'C:\Users\Seth\Documents\GitHub\Kilosort-Wanglab'; % take from Github folder and put it somewhere else (together with the master_file)
+%     pathToYourConfigFile = 'C:\Users\Seth\Documents\GitHub\Kilosort-Wanglab'; % take from Github folder and put it somewhere else (together with the master_file)
     run(fullfile(pathToYourConfigFile, 'Harris_config2.m'))
     
     ops.trange = [0 Inf]; % time range to sort
@@ -69,9 +70,9 @@ for s = 1:length(session_list)
     
     tic; % start timer
     %
-    if ops.GPU
-        gpuDevice(1); % initialize GPU (will erase any existing GPU arrays)
-    end
+%     if ops.GPU
+%         gpuDevice(1); % initialize GPU (will erase any existing GPU arrays)
+%     end
     
     % Openephys to binary converter
     ops.ephys_type = file_type;

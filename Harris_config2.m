@@ -78,6 +78,7 @@ ops.minfr_goodchannels = 0.1;
 
 ops.Th = [25 10];
 % ops.Th = [10 6];
+
 % how important is the amplitude penalty (like in Kilosort1, 0 means not used, 10 is average, 50 is a lot) 
 ops.lam = 20;  
 
