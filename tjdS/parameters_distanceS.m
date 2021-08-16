@@ -2,7 +2,7 @@ function x = parameters_distanceS()
 
 
 x.PC_name = '426_Analysis';
-x.animal_name = 'M60F';
+x.animal_name = 'M160E';
 % x.list_data_name = [x.animal_name '_unit_list']; %Do not modify this
 x.list_data_name = 'unit_list'; %Do not modify this
 
@@ -23,21 +23,18 @@ end
 
 
 
-x.hole_number = 15;
-x.track_number = 2;
-x.depth = 1300;
+x.hole_number = 2;
+x.track_number = 1;
+x.depth = 905;
 x.hemi = 'L';
 x.segment_list = {    
-'M60F1194'
-'M60F1195'
-'M60F1196'
-'M60F1197'
-'M60F1198'
-'M60F1199'
-'M60F1200'
-'M60F1201'
-
-
+'M160E0024'
+'M160E0025'
+'M160E0026'
+'M160E0027'
+'M160E0028'
+'M160E0029'
+'M160E0030'
 
 };
 
