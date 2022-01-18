@@ -11,16 +11,23 @@ addpath(genpath(fullfile('D:\Data\Units\M60F')));
 
 
 
-x.hole_number = 5;
-x.track_number = 4;
+x.hole_number = 14;
+x.track_number =6;
 x.depth = 800;
 x.hemi = 'L';
 x.segment_list = {
-'M60F0388'
-'M60F0389'
-'M60F0390'
-'M60F0391'
-
+'M60F1141'
+'M60F1142'
+'M60F1143'
+'M60F1144'
+'M60F1145'
+'M60F1146'
+'M60F1147'
+'M60F1148'
+'M60F1149'
 
     };
 
+
+
+    

@@ -21,7 +21,6 @@ x.list  = {
 '2021-12-19_17-06-38'
 
 
-};
 
 x.fpath2 = path2;
 x.session_id = SID;
@@ -39,7 +38,6 @@ xbz_list = {
 'M56E0062'
 'M56E0063'
 
-};
 
 x.xbz_file_name = xbz_list{x.session_id};
 

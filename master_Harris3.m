@@ -51,12 +51,18 @@ else
     make_HarrisChannelMap(fpath)
 end
 
+% tic
+% g = gpuDevice;
+% % reset(g);
+% toc
+
+% reset(g);
 
 
 tic; % start timer
 %
 if ops.GPU     
-    gpuDevice(1); % initialize GPU (will erase any existing GPU arrays)
+    gpuDevice(); % initialize GPU (will erase any existing GPU arrays)
 end
 
 % Openephys to binary converter
