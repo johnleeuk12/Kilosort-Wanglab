@@ -5,22 +5,24 @@ function concat_OE(concat_folder_name)
 useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulated data takes 55 seconds on gtx 1080 + M2 SSD.
 
 session_list = {
-
-'2021-08-08_15-06-43'
-'2021-08-08_15-10-38'
-'2021-08-08_15-15-40'
-'2021-08-08_15-20-48'
-'2021-08-08_15-25-57'
-'2021-08-08_15-42-54'
-'2021-08-08_16-33-40'
-'2021-08-08_17-03-27'
-
+'2021-12-20_14-56-08'
+'2021-12-20_15-01-16'
+'2021-12-20_15-06-26'
+'2021-12-20_15-11-46'
+'2021-12-20_15-18-38'
+'2021-12-20_15-33-28'
+'2021-12-20_15-56-09'
+'2021-12-20_16-26-58'
+'2021-12-20_16-58-00'
+'2021-12-20_17-03-18'
+'2021-12-20_17-08-32'
+'2021-12-20_17-13-44'
 
 };
-% concat_folder_name = 'H4T4S1_concat';
+% concat_folder_name = 'H1T2S1_concat';
 
 
-Animal_name = 'M160E';
+Animal_name = 'M56E';
 addpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort2')) % path to kilosort folder
 addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
 file_type = '100';
@@ -110,7 +112,8 @@ if ~exist(fpath, 'dir'); mkdir(fpath); end
 run(fullfile(pathToYourConfigFile, 'Harris_config2.m'))
 ops.datatype = 'dat';
 
-buff= {};
+% buff= {};
+buff = [];
 % Big_buff = [];
 tic
 fileID = fopen(fullfile(fpath,filesep,fname),'w');
@@ -121,11 +124,11 @@ for t = 1:length(session_list)
     batch_size = 32*1024;
     Nbatch = ceil(Info.bytes/batch_size);
     
-    buff{t} = fread(fid, [1, Info.bytes], '*int16');
+        buff = fread(fid, [1, Info.bytes], '*int16');
     
-    fwrite(fileID,buff{t},'*int16');
-    %     for ibatch = 1:Nbatch
-    %         if ibatch == Nbatch
+        fwrite(fileID,buff,'*int16');
+%     for ibatch = 1:Nbatch
+%         if ibatch == Nbatch
 %             batch_start = (ibatch-1)*batch_size +1;
 %             batch_end = Info.bytes;
 %         else

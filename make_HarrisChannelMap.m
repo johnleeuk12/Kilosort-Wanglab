@@ -36,8 +36,9 @@ chanMap = [27 32 21 3 25 30 19 5 23 17 24 7 20 29 26 9 ...
 % meaning not dead or used for non-ephys data
 
 connected = true(Nchannels, 1);
-% connected(find(chanMap == 21)) = false;
-% connected(find(chanMap == 63)) = false;
+connected(44) = false;
+connected(37) = false;
+connected(55) = false;
 % connected(find(chanMap == 15)) = false;
 
 % connected(64) = false;

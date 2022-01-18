@@ -77,15 +77,15 @@ ops.ForceMaxRAMforDat   = 20e9; % maximum RAM the algorithm will try to use; on 
 ops.minfr_goodchannels = 0.1; 
 
 ops.Th = [25 10];
-% ops.Th = [10 6];
+% ops.Th = [15 8];
 % how important is the amplitude penalty (like in Kilosort1, 0 means not used, 10 is average, 50 is a lot) 
-ops.lam = 20;  
-
+% ops.lam = 20;  
+ops.lam = 20;
 % splitting a cluster at the end requires at least this much isolation for each sub-cluster (max = 1)
 ops.AUCsplit = 0.9; 
 
 % minimum spike rate (Hz), if a cluster falls below this for too long it gets removed
-ops.minFR = 1/10; 
+ops.minFR = 1/50; 
 
 % number of samples to average over (annealed from first to second value) 
 ops.momentum = [20 400]; 
