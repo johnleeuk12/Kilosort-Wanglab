@@ -367,8 +367,10 @@ classdef tjxS < handle
             %             start_stim_times = timestamps(find(info.eventId ==1))-29.9349;
             start_stim_times = timestamps(find(info.eventId ==1))-obj.params.rec_start_time; %$-2.2870; 
             end_stim_times = timestamps(find(info.eventId ==0))-obj.params.rec_start_time; %-2.2870;
-%             start_stim_times = start_stim_times(2:end);
-%             end_stim_times = end_stim_times(3:end);
+
+%             start_stim_times = start_stim_times(1:410);
+%             end_stim_times = end_stim_times(2:end);
+
             obj.start_times = start_stim_times;
             obj.end_times = end_stim_times;
             obj.x = eval(obj.params.xbz_file_name);
@@ -384,18 +386,19 @@ classdef tjxS < handle
             
             nreps = obj.x.stimulus_ch1(1,4);
             nStim = max(obj.x.stimulus_ch1(:,1));
-            %             nreps = 10;
+%                         nreps = 7;
             
             %
             % nStim = nStim + max(x2.stimulus_ch1(:,1));
             %
             TotalReps = nStim*nreps;
-            false_start = length(start_stim_times)-TotalReps;
-            start_stim_times = start_stim_times(false_start+1:end);
-            end_stim_times = end_stim_times(false_start+1:end); %(false_start+1:end);
             
-%             start_stim_times = start_stim_times(1:end-false_start);
-%             end_stim_times = end_stim_times(1:end-false_start); %(false_start+1:end);
+            false_start = length(start_stim_times)-TotalReps;
+%             start_stim_times = start_stim_times(false_start+1:end);
+%             end_stim_times = end_stim_times(false_start+1:end); %(false_start+1:end);
+            
+            start_stim_times = start_stim_times(1:end-false_start);
+            end_stim_times = end_stim_times(1:end-false_start); %(false_start+1:end);
             
             
             raster.stim = {};
