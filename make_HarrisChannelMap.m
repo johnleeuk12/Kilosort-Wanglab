@@ -25,7 +25,7 @@ Nchannels = 64;
 %     38 42 40 45 43 35 33 47 36 50 34 44 46 39 41 37];
 
 
-% new batch 2021
+% new batch 2021 may
 chanMap = [27 32 21 3 25 30 19 5 23 17 24 7 20 29 26 9 ...
     22 31 28 11 16 13 1 15 18 12 14 10 8 4 6 2 ...
     64 59 61 57 55 51 53 49 48 54 52 56 58 62 60 64 ...
@@ -36,9 +36,9 @@ chanMap = [27 32 21 3 25 30 19 5 23 17 24 7 20 29 26 9 ...
 % meaning not dead or used for non-ephys data
 
 connected = true(Nchannels, 1);
-connected(44) = false;
-connected(37) = false;
-connected(55) = false;
+connected(64) = false;
+% connected(41) = false;
+% connected(55) = false;
 % connected(find(chanMap == 15)) = false;
 
 % connected(64) = false;

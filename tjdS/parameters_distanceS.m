@@ -23,24 +23,18 @@ end
 
 
 
-x.hole_number = 1;
-x.track_number = 5;
+x.hole_number = 5;
+x.track_number = 8;
 x.depth = 905;
 x.hemi = 'L';
-x.segment_list = {    
-'M56E0052'
-'M56E0053'
-'M56E0054'
-'M56E0055'
-'M56E0056'
-'M56E0057'
-'M56E0059'
-'M56E0060'
-'M56E0061'
-'M56E0062'
-'M56E0063'
-
-
+x.segment_list = { 
+'M56E0520'
+'M56E0521'
+'M56E0522'
+'M56E0523'
+'M56E0524'
+'M56E0525'
+'M56E0526'
 
 };
 
