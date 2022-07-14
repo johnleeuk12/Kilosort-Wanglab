@@ -16,8 +16,12 @@ useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulate
 
 % session_name = 
 
-fpath = fullfile('D:\Data\example_BR_data');
-BRfilename = 'BRsample.ns5';
+fpath = fullfile('D:\Data\example_TDT recording data');
+
+
+%filename = 'BRsample.ns5';
+filename = 'TDTsample';
+
 
 if ~exist(fpath, 'dir'); mkdir(fpath); end
 
@@ -31,10 +35,13 @@ addpath(genpath('D:\\GitHub\npy-matlab')) % path to npy-matlab scripts
 addpath(genpath('D:\GitHub\NPMK\NPMK'))
 
 pathToYourConfigFile = 'D:\\GitHub\Kilosort-Wanglab'; % take from Github folder and put it somewhere else (together with the master_file)
-run(fullfile(pathToYourConfigFile, 'Blackrock_config.m'))
+% run(fullfile(pathToYourConfigFile, 'Blackrock_config.m'))
+run(fullfile(pathToYourConfigFile, 'TDT_config.m'))
 
 ops.trange = [0 Inf]; % time range to sort
 ops.useGit = false;
+
+ops.datatype = 'tev';
 % ops.ephys_type = file_type;
 %%
 % convert to binary
@@ -42,9 +49,19 @@ ops.useGit = false;
 disp('converting data...')
 tic
 
-if strcmp(ops.datatype , 'ns5')
-    NSxToHL([fpath,filesep, BRfilename]);
-    ops.datatype = 'dat';
+fss = dir(fullfile(rootZ, '*.dat'));
+if ~isempty(fss)
+    disp('data already converted');
+else
+    if strcmp(ops.datatype , 'ns5')
+        NSxToHL([fpath,filesep, filename]);
+        ops.datatype = 'dat';
+    elseif strcmp(ops.datatype , 'tev')
+        sr = TDTtoDAT(fpath,filename);
+        ops.fs = sr;
+        ops.datatype = 'dat';
+        
+    end
 end
 disp('converting data... Done')
 toc
@@ -67,8 +84,10 @@ ops.nblocks    = 5; % blocks for registration. 0 turns it off, 1 does rigid regi
 fs = dir(fullfile(rootZ, 'chan*.mat'));
 if ~isempty(fs)
     ops.chanMap = fullfile(rootZ, fs(1).name);
-else
+elseif strcmp(ops.datatype , 'ns5')
     make_BlackrockChannelMap(fpath)
+elseif strcmp(ops.datatype , 'tev')
+    make_TDTChannelMap(fpath)
 end
 
 
