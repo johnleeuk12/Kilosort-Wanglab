@@ -1,4 +1,4 @@
-function [fpath, savepath] = directories(PC_name,animal_name,session_name)
+function [fpath, savepath] = directories(PC_name,animal_name)
 % Select PC name : Chamber_T, 426_Analysis 426_John
 
 switch PC_name
@@ -12,6 +12,11 @@ switch PC_name
     start_path = 'C:\Users\Seth\';
     kilo_path = 'Kilosort2';
     analysis_path = '\analysis-tools-master';
+    
+    case 'LeeLab_John'
+        start_path = 'D:\';
+        kilo_path = 'Kilosort2';
+        analysis_path  ='\analysis-tools';
 end
 
 addpath(genpath(fullfile(start_path, 'Documents\GitHub\', kilo_path))); % path to kilosort folder

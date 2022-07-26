@@ -10,7 +10,7 @@ units, as well as decide which to define as single and multiunits.
     tjx runs in the order as shown in run_tjx.m. However, tjx can also
 extract layer information through CSD analysis. 
 
-    DO NOT MODIFY THE CODE without permission from John LEE
+    DO NOT MODIFY THE CODE without permission from JHL
 
 %%%%%%%%%%%%%% EDIT LOG %%%%%%%%%%%%%%%%%%%%%%%%
 11/27/2020 JHL
