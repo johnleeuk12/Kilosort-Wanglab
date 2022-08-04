@@ -1,18 +1,23 @@
-function x = parameters_xS(PC, animal)
+function x = parameters_xS(PC, animal,fpath2)
 
 %Modify parameters based on OpenEphys and xbz output. 
-% addpath('C:\Users\Seth\Documents\GitHub\Kilosort-Wanglab\Analysis')
+addpath('D:\GitHub\Kilosort-Wanglab\Analysis')
 
 
-addpath('D:\GitHub\npy-matlab')
+addpath(genpath('D:\GitHub\npy-matlab'))
+addpath(genpath('D:\GitHub\TDTMatlabSDK'))
 x.PC_name = PC;
 x.animal_name = animal;
 
+
 x.fname = 'TDTdata.dat';
 x.figure_on = 0;
-x.file_type = '100';
+x.file_type = 'TDT';
 
-[x.fpath, x.savepath] = directories(x.PC_name,x.animal_name,x.session_name);
+[x.fpath, x.savepath] = directories(x.PC_name,x.animal_name);
+
+x.fpath2 = fpath2;
+
 % blackrock or DBC
 % x.fs = 30000;
 

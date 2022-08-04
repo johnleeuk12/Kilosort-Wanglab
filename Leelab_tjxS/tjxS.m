@@ -24,6 +24,10 @@ extract layer information through CSD analysis.
     modified code for save_units() so that code isnt specific to M12E
     modified save directory for units
 
+07/27/2022 JHL
+    Changing code to fit with LeeLab, including TDT data support.
+    changes also include epoch data
+
 %}
 
 
@@ -57,6 +61,7 @@ classdef tjxS < handle
         Cidds = []; %NEW
         good_ch = []; %NEW
         x = {};
+        TDTdata = {};
     end
     
     
@@ -66,8 +71,8 @@ classdef tjxS < handle
     methods
 
         %%
-        function obj = tjxS(pf,a,b) %New entry, good one
-            obj.params = pf(a,b);
+        function obj = tjxS(pf,a,b,c) %New entry, good one
+            obj.params = pf(a,b,c);
         end
         %%
         function obj = initialize(obj)
@@ -100,7 +105,7 @@ classdef tjxS < handle
         end
         
         function obj = load_data_TDT(obj)
-            TDTdata = TDTbin2mat(obj.params.fpath2,'TYPE',{'epocs'});
+            obj.TDTdata = TDTbin2mat(obj.params.fpath2,'TYPE',{'epocs'});
             
         end
         %%
@@ -260,7 +265,7 @@ classdef tjxS < handle
         end
         %%
         
-        function obj = save_Units(obj, save_dir,animal_name)
+        function obj = save_Units(obj, save_dir,animal_name,fname)
             global   Cchannels Cids  SU
             
             
@@ -274,7 +279,7 @@ classdef tjxS < handle
             unit_list_name = [animal_name '_unit_list.mat'];
             if exist(fullfile(save_dir,filesep,unit_list_name))
                 load(fullfile(save_dir,unit_list_name));
-                if  ~isempty(find(strcmp(unit_list.data(:,4),obj.params.xbz_file_name)))
+                if  ~isempty(find(strcmp(unit_list.data(:,5),fname)))
                     error('Units already saved')
                 end
                 
@@ -283,8 +288,10 @@ classdef tjxS < handle
                 unit_list.tags{1} = 'id';
                 unit_list.tags{2} = 'SNR';
                 unit_list.tags{3} = 'Amplitude';
-                unit_list.tags{4} = 'xbz_filename';
-                unit_list.tags{5} = 'Cid';
+                unit_list.tags{4} = 'Cid';
+                unit_list.tags{5} = 'filename';
+
+                
                 unit_list.data = {};
                 save(fullfile(save_dir,unit_list_name),'unit_list');
             end
@@ -303,30 +310,36 @@ classdef tjxS < handle
                     s_unit.waveforms = obj.waveforms.raw(id);
                     %                 s_unit.spiketimes = spike_times_all(find(spike_clusters == Cids(SU(id))))/obj.params.fs;
                     s_unit.spiketimes = obj.spike_times{id};
-                    s_unit.xbz_file_name = obj.params.xbz_file_name;
+                    %                     s_unit.xbz_file_name = obj.params.xbz_file_name;
+                    s_unit.stim_data = obj.TDTdata;
                     s_unit.amplitude = max(abs(obj.waveforms.mean{id}));
-                    s_unit.start_times = obj.start_times;
-                    s_unit.end_times =obj.end_times;
+                    %                     s_unit.start_times = obj.start_times;
+                    %                     s_unit.end_times =obj.end_times;
                     unitname= [animal_name 'u00001']; %03/03/20 changed from u001 to u00001
                     if isempty(unit_list.data)
                         save(fullfile(save_dir,unitname),'s_unit')
                         unit_list.data{1,1} = 1;
                         unit_list.data{1,2} = s_unit.SNR;
                         unit_list.data{1,3} = s_unit.amplitude;
-                        unit_list.data{1,4} = s_unit.xbz_file_name;
-                        unit_list.data{1,5} = s_unit.cid;
+                        %                         unit_list.data{1,4} = s_unit.xbz_file_name;
+                        unit_list.data{1,4} = s_unit.cid;
+                        unit_list.data{1,5} = fname;
                     else
                         unitname = [unitname(1:end-length(num2str(size((unit_list.data),1)+1))) num2str(size((unit_list.data),1)+1)];
                         save(fullfile(save_dir,unitname),'s_unit')
                         unit_list.data{size((unit_list.data),1)+1,1} = size((unit_list.data),1)+1;
                         unit_list.data{size((unit_list.data),1),2} = s_unit.SNR;
                         unit_list.data{size((unit_list.data),1),3} = s_unit.amplitude;
-                        unit_list.data{size((unit_list.data),1),4} = s_unit.xbz_file_name;
-                        unit_list.data{size((unit_list.data),1),5} = s_unit.cid;
+                        %                         unit_list.data{size((unit_list.data),1),4} = s_unit.xbz_file_name;
+                        unit_list.data{size((unit_list.data),1),4} = s_unit.cid;
+                        unit_list.data{size((unit_list.data),1),5} = fname;
+                        
                         
                     end
                     save(fullfile(save_dir,unit_list_name),'unit_list')
                 end
+                fprintf('Time %3.0fs. unit %3.0f/ %3.0f.  \n', toc,id,length(SU));
+                
             end
             disp('Units saved')
             

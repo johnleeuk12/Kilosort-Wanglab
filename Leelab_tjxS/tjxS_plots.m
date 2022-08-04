@@ -13,7 +13,13 @@ Last modification: Dec. 1, 2020
 12/3/2020 JHL
     added functions raster2 and tuning2 for 2D Stim. function select stim
     is a utility function for these 2 functions
+
+07/26/2022 JHL
+    Adapting code for LeeLab. Variable out_su is no longer necessary.
+    
     %}
+    
+
     
     
     properties
@@ -35,18 +41,18 @@ Last modification: Dec. 1, 2020
     
     methods
         %%
-        function obj = tjxS_plots(stim_info,out,out_su,val1,val2,ax1,ax2,ax3,ax4,ax5,ax6)
+        function obj = tjxS_plots(stim_info,out,val1,val2,ax1,ax2,ax4,ax5)
             
                 obj.out = out;
-                obj.out_su = out_su;
+%                 obj.out_su = out_su;
                 obj.val_1 = val1;
                 obj.val_2 = val2;
                 obj.ax1 = ax1;
                 obj.ax2 = ax2;
-                obj.ax3 = ax3;
+%                 obj.ax3 = ax3;
                 obj.ax4 = ax4;
                 obj.ax5 = ax5;
-                obj.ax6 = ax6;
+%                 obj.ax6 = ax6;
                 obj.stim_info = stim_info;
         end
         %%
@@ -55,10 +61,10 @@ Last modification: Dec. 1, 2020
             
                 delete(get(obj.ax1, 'children'));
                 delete(get(obj.ax2, 'children'));
-                delete(get(obj.ax3, 'children'));
+%                 delete(get(obj.ax3, 'children'));
                 delete(get(obj.ax4, 'children'));
                 delete(get(obj.ax5, 'children'));
-                delete(get(obj.ax6, 'children'));
+%                 delete(get(obj.ax6, 'children'));
                 
                 delete(legend(obj.ax1));
                 delete(legend(obj.ax2));
@@ -67,10 +73,10 @@ Last modification: Dec. 1, 2020
                 
                 delete(title(obj.ax1, ['Waveform Cluster ' obj.val_1]));
                 delete(title(obj.ax2,['PCA Cluster' obj.val_1]));
-                delete(title(obj.ax3,['Tuning Curve Cluster ' obj.val_1]));
+%                 delete(title(obj.ax3,['Tuning Curve Cluster ' obj.val_1]));
                 delete(title(obj.ax4,'ISI'));
-                delete(title(obj.ax5,['Rasterplot Cluster ' obj.val_1]));
-                delete(title(obj.ax6,['Rasterplot Cluster ' obj.val_2]));
+                delete(title(obj.ax5,'Correlation'));
+%                 delete(title(obj.ax6,['Rasterplot Cluster ' obj.val_2]));
             
             
         end
@@ -142,8 +148,8 @@ Last modification: Dec. 1, 2020
                 set(obj.ax4,'xscale','log')
                 xticks(obj.ax4,[1E-4 1E-3 1E-2 1E-1 1 10]);
                 xticklabels(obj.ax4,{0.0001, 0.001, 0.01, 0.1, 1, 10})
-                xlabel(obj.ax4,'Time (ms)')
-                title(obj.ax4,['ISI: ' num2str(refract) '%, Cluster ' value]);
+                xlabel(obj.ax4,'Time (s)')
+                title(obj.ax4,['ISI: ' num2str(refract)*1e3 '%, Cluster ' value]);
                 
             elseif length(ids) == 2
                 
@@ -161,12 +167,63 @@ Last modification: Dec. 1, 2020
                 set(obj.ax4,'xscale','log')
                 xticks(obj.ax4,[1E-4 1E-3 1E-2 1E-1 1 10]);
                 xticklabels(obj.ax4,{0.0001, 0.001, 0.01, 0.1, 1, 10})
-                xlabel(obj.ax4,'Time (ms)')
+                xlabel(obj.ax4,'Time (s)')
                 title(obj.ax4,'ISI');
                 legend(obj.ax4,[num2str(refract) '%' ' (cluster ' obj.val_1 ')'],[num2str(refract2) '%' ' (cluster ' obj.val_2 ')']);
                 hold off
                 
             end
+            
+        end
+        
+        %%
+        function obj = corr_plot(obj,plt,ids)
+            if length(ids) == 1
+                if plt == 1
+                    value = obj.val_1; %Cluster value
+                elseif plt == 2
+                    value = obj.val_2; %Cluster value
+                end
+                
+                spike_train = zeros(1,round(max(obj.out.spike_times{ids})*1e3)+1);
+                for n = 1:length(obj.out.spike_times{ids})
+                    spike_train(1,round(obj.out.spike_times{ids}(n)*1e3)) = 1;
+                end
+                
+                autocorr = xcorr(spike_train,1e2);
+                autocorr(101) = 0;
+                refract = sum(autocorr(101:103));
+                
+                plot(obj.ax5,[-1e2:1e2],autocorr,'LineWidth',2);
+                xlabel(obj.ax5,'time (ms)');
+                title(obj.ax5,['Autocorrelation for Cluster ', value])
+                legend(obj.ax5,[num2str(refract/length(spike_train)) '% of spikes within 2ms'])
+
+           elseif length(ids) == 2
+               spike_train_1 = zeros(1,round(max(obj.out.spike_times{ids(1)})*1e3)+1);
+               for n = 1:length(obj.out.spike_times{ids(1)})
+                   spike_train_1(1,round(obj.out.spike_times{ids(1)}(n)*1e3)) = 1;
+               end
+               
+               spike_train_2 = zeros(1,round(max(obj.out.spike_times{ids(2)})*1e3)+1);
+               for n = 1:length(obj.out.spike_times{ids(2)})
+                   spike_train_2(1,round(obj.out.spike_times{ids(2)}(n)*1e3)) = 1;
+               end  
+               
+               crosscorr = xcorr(spike_train_1,spike_train_2,1e2);
+               crosscorr(101) = 0;
+               plot(obj.ax5,[-1e2:1e2],crosscorr,'LineWidth',2);
+               xlabel(obj.ax5,'time (ms)');
+               title(obj.ax5,['crosscorrelation between Clusters ', obj.val_1, 'and', obj.val_2])
+           
+           
+           
+           
+           end
+            
+            
+            
+            
             
         end
         %%

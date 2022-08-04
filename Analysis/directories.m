@@ -19,13 +19,19 @@ switch PC_name
         analysis_path  ='\analysis-tools';
 end
 
-addpath(genpath(fullfile(start_path, 'Documents\GitHub\', kilo_path))); % path to kilosort folder
-addpath(genpath(fullfile(start_path, 'Documents\GitHub\npy-matlab'))); % path to npy-matlab scripts
-addpath(genpath(fullfile(start_path,'Documents\GitHub', analysis_path)));
+addpath(genpath(fullfile(start_path, 'GitHub\', kilo_path))); % path to kilosort folder
+addpath(genpath(fullfile(start_path, 'GitHub\npy-matlab'))); % path to npy-matlab scripts
+addpath(genpath(fullfile(start_path,'GitHub', analysis_path)));
 
 addpath(fullfile('D:\Data\Experiments\', animal_name));
 fpath = fullfile('D:\Data\Experiments\', animal_name, filesep);
+
 savepath = fullfile('D:\Data\Units\',animal_name,filesep);
+
+if ~isfolder(savepath)
+    mkdir(savepath);
+end
+
 %, session_name);% where on disk do you want the simulation? ideally and SSD...
 
 
