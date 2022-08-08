@@ -25,6 +25,11 @@ x.fpath2 = fpath2;
 
 % TDT
 x.fs = 24414;
+
+% Blackrock
+x.fs = 30000;
+
+
 x.Nb_ch = 32;
 load('chanMap_TDT.mat');
 
