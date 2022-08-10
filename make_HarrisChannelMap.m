@@ -109,7 +109,7 @@ kcoords   = ones(Nchannels,1);
 
 % would be good to also save the sampling frequency here
 %channelmap, from right to left, top to bottom
-fs = 30000; % sampling frequency
+fs = 24414; % sampling frequency
 
 
 save(fullfile(fpath, 'chanMap.mat'), ... 

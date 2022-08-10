@@ -17,16 +17,21 @@ switch PC_name
         start_path = 'D:\';
         kilo_path = 'Kilosort2';
         analysis_path  ='\analysis-tools';
+    case 'LeeLab_analysis'
+        start_path = 'K:\';
+        kilo_path = 'Kilosort2';
+        analysis_path  ='\analysis-tools';
+
 end
 
 addpath(genpath(fullfile(start_path, 'GitHub\', kilo_path))); % path to kilosort folder
 addpath(genpath(fullfile(start_path, 'GitHub\npy-matlab'))); % path to npy-matlab scripts
 addpath(genpath(fullfile(start_path,'GitHub', analysis_path)));
 
-addpath(fullfile('D:\Data\Experiments\', animal_name));
-fpath = fullfile('D:\Data\Experiments\', animal_name, filesep);
+% addpath(fullfile(start_path,'Data\Experiments\', animal_name));
+fpath = fullfile(start_path,'Data\Experiments\', animal_name, filesep);
 
-savepath = fullfile('D:\Data\Units\',animal_name,filesep);
+savepath = fullfile(start_path,'Data\Units\',animal_name,filesep);
 
 if ~isfolder(savepath)
     mkdir(savepath);

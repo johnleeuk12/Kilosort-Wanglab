@@ -4,7 +4,7 @@ ops.parfor              = 1; % whether to use parfor to accelerate some parts of
 ops.verbose             = 1; % whether to print command line progress		
 ops.showfigures         = 0; % whether to plot figures during optimization		
 		
-ops.datatype            = 'ns5';  % binary ('dat', 'bin') or 'openEphys'		
+ops.datatype            = 'tev';  % binary ('dat', 'bin') or 'openEphys'		
 % ops.fbinary             = 'test_binary.dat'; % will be created for 'openEphys'	
 % ops.ephys_type          = file_type; % OpenEphys file type. check header number of one "Continuous" file
 ops.fproc               = fullfile(fpath, 'temp_wh.dat'); % residual from RAM of preprocessed data		
@@ -12,7 +12,7 @@ ops.root                = fullfile(fpath); % 'openEphys' only: where raw files a
 		
 % ops.chanMap             = fullfile('D:\DATA\Spikes\HarrisProbe\', 'chanMap.mat'); % make this file using createChannelMapFile.m		
 
-ops.fs                  = 30000;        % sampling rate		(omit if already in chanMap file)
+ops.fs                  = 24414;        % sampling rate		(omit if already in chanMap file)
 ops.NchanTOT            = 32;           % total number of channels (omit if already in chanMap file)
 ops.Nchan               = 32;           % number of active channels (omit if already in chanMap file)
 ops.Nfilt               = 128;           % number of clusters to use (2-4 times more than Nchan, should be a multiple of 32)     		

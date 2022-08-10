@@ -126,6 +126,7 @@ classdef tjxS < handle
             fclose(fid);
             toc
             
+                       
             buff = reshape(buff,obj.params.Nb_ch,[]);
             
             fprintf('Time %3.0fs. loading data... complete! \n', toc);
@@ -157,6 +158,14 @@ classdef tjxS < handle
             obj.SUU = [obj.SUU SU]; %NEW LINE
             
             obj.SU_good = ones(length(SU),1);
+            
+            if strcmp(obj.params.file_type,'BR') %blackrock systems
+                voltage_amp = 0.1;
+            elseif strcmp(obj.params.file_type,'TDT') %TDT systems
+                voltage_amp = 0.4;
+            else
+                voltage_amp = 0.195;
+            end
             
             
             
@@ -194,12 +203,12 @@ classdef tjxS < handle
                             if spike_times_SU{id}(t,1)-19 > ipoint && spike_times_SU{id}(t,1)+40 < ipoint+Nbuff-1+60
                                 %                                 p = p+1;
                                 %                                 disp(p)
-                                obj.waveforms.raw{id}(:,:,t) = 0.195*filtData(:, ...
+                                obj.waveforms.raw{id}(:,:,t) = voltage_amp*filtData(:, ...
                                     round(spike_times_SU{id}(t,1)-ipoint-19):round(spike_times_SU{id}(t,1)-ipoint+40));
                             end
                         else
                             if spike_times_SU{id}(t,1)-19 > ipoint && spike_times_SU{id}(t,1)+40 < ipoint+Nbuff-1
-                                obj.waveforms.raw{id}(:,:,t) = 0.195*filtData(:, ...
+                                obj.waveforms.raw{id}(:,:,t) = voltage_amp*filtData(:, ...
                                     round(spike_times_SU{id}(t,1)-ipoint-19):round(spike_times_SU{id}(t,1)-ipoint+40));
                             end
                         end

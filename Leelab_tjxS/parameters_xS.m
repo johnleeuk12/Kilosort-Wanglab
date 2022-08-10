@@ -10,9 +10,9 @@ x.PC_name = PC;
 x.animal_name = animal;
 
 
-x.fname = 'TDTdata.dat';
+x.fname = 'BRsample.ns5.dat';
 x.figure_on = 0;
-x.file_type = 'TDT';
+x.file_type = 'BR';
 
 [x.fpath, x.savepath] = directories(x.PC_name,x.animal_name);
 
@@ -24,7 +24,7 @@ x.fpath2 = fpath2;
 
 
 % TDT
-x.fs = 24414;
+% x.fs = 24414;
 
 % Blackrock
 x.fs = 30000;
