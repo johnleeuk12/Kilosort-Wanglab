@@ -16,10 +16,10 @@ useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulate
 
 % session_name = 
 
-fpath = fullfile('D:\Data\example_BR_data');
+fpath = fullfile('D:\Data\YS');
 
 
-filename = 'BRsample.ns5';
+filename = '220609_controllcre-_3_OFC_L_2600um.ns5';
 % filename = 'TDTsample';
 
 
@@ -41,7 +41,7 @@ run(fullfile(pathToYourConfigFile, 'Blackrock_config.m'))
 ops.trange = [0 Inf]; % time range to sort
 ops.useGit = false;
 
-ops.datatype = 'tev';
+ops.datatype = 'ns5';
 % ops.ephys_type = file_type;
 %%
 % convert to binary

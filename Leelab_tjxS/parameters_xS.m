@@ -19,15 +19,13 @@ x.file_type = 'BR';
 x.fpath2 = fpath2;
 
 % blackrock or DBC
-% x.fs = 30000;
+x.fs = 30000;
 
 
 
 % TDT
 % x.fs = 24414;
 
-% Blackrock
-x.fs = 30000;
 
 
 x.Nb_ch = 32;
