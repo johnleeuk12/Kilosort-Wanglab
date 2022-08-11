@@ -54,7 +54,7 @@ if ~isempty(fs)
     disp('data already converted');
 else
     if strcmp(ops.datatype , 'ns5')
-        NSxToHL([fpath,filesep, filename]);
+        NSxToHLnew(ops,[fpath,filesep, filename]);
         ops.datatype = 'dat';
     elseif strcmp(ops.datatype , 'tev')
         sr = TDTtoDAT(fpath,filename);
