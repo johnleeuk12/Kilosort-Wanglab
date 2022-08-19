@@ -149,7 +149,7 @@ Last modification: Dec. 1, 2020
                 xticks(obj.ax4,[1E-4 1E-3 1E-2 1E-1 1 10]);
                 xticklabels(obj.ax4,{0.0001, 0.001, 0.01, 0.1, 1, 10})
                 xlabel(obj.ax4,'Time (s)')
-                title(obj.ax4,['ISI: ' num2str(refract)*1e3 '%, Cluster ' value]);
+                title(obj.ax4,['ISI: ' num2str(refract) '%, Cluster ' value]);
                 
             elseif length(ids) == 2
                 
@@ -197,7 +197,7 @@ Last modification: Dec. 1, 2020
                 plot(obj.ax5,[-1e2:1e2],autocorr,'LineWidth',2);
                 xlabel(obj.ax5,'time (ms)');
                 title(obj.ax5,['Autocorrelation for Cluster ', value])
-                legend(obj.ax5,[num2str(refract/length(spike_train)) '% of spikes within 2ms'])
+                legend(obj.ax5,[num2str(refract*1e2/length(spike_train)) '% of spikes within 2ms'])
 
            elseif length(ids) == 2
                spike_train_1 = zeros(1,round(max(obj.out.spike_times{ids(1)})*1e3)+1);

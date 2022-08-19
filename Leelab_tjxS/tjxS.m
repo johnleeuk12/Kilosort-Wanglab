@@ -61,7 +61,7 @@ classdef tjxS < handle
         Cidds = []; %NEW
         good_ch = []; %NEW
         x = {};
-        TDTdata = {};
+        Eventdata = {};
     end
     
     
@@ -90,7 +90,7 @@ classdef tjxS < handle
             obj.Cidds = [obj.Cidds Cids];
             
         end
-        %%
+        %% Loading event files 
         function obj = load_data_OE(obj)
             
             data_all = [];
@@ -105,8 +105,16 @@ classdef tjxS < handle
         end
         
         function obj = load_data_TDT(obj)
-            obj.TDTdata = TDTbin2mat(obj.params.fpath2,'TYPE',{'epocs'});
+            obj.Eventdata = TDTbin2mat(obj.params.fpath2,'TYPE',{'epocs'});
             
+        end
+        
+        function obj = load_data_NEV(obj)
+            fname = erase(obj.params.fname, '.ns5.dat');
+            fname = [fname,'.nev'];
+            
+            temp = openNEV(fullfile(obj.params.fpath2, fname),'nosave');
+            obj.Eventdata = temp.Data.SerialDigitalIO;
         end
         %%
         function obj = extract_units(obj)
@@ -274,7 +282,7 @@ classdef tjxS < handle
         end
         %%
         
-        function obj = save_Units(obj, save_dir,animal_name,fname)
+        function obj = save_Units(obj, save_dir,project_name,fname,animalname,experiment)
             global   Cchannels Cids  SU
             
             
@@ -285,7 +293,10 @@ classdef tjxS < handle
             
             %             save_dir = a; %NEW
             %             save_dir = obj.params.savepath;
-            unit_list_name = [animal_name '_unit_list.mat'];
+            if ~isfolder(save_dir)
+                mkdir(save_dir);
+            end
+            unit_list_name = [project_name '_unit_list.mat'];
             if exist(fullfile(save_dir,filesep,unit_list_name))
                 load(fullfile(save_dir,unit_list_name));
                 if  ~isempty(find(strcmp(unit_list.data(:,5),fname)))
@@ -299,12 +310,14 @@ classdef tjxS < handle
                 unit_list.tags{3} = 'Amplitude';
                 unit_list.tags{4} = 'Cid';
                 unit_list.tags{5} = 'filename';
+                unit_list.tags{6} = 'animal_id';
+                unit_list.tags{7} = 'experiment';
 
                 
                 unit_list.data = {};
                 save(fullfile(save_dir,unit_list_name),'unit_list');
             end
-            
+            tic
             for id = 1:length(SU)
                 if obj.SU_good(id) ==1
                     s_unit = {};
@@ -320,11 +333,11 @@ classdef tjxS < handle
                     %                 s_unit.spiketimes = spike_times_all(find(spike_clusters == Cids(SU(id))))/obj.params.fs;
                     s_unit.spiketimes = obj.spike_times{id};
                     %                     s_unit.xbz_file_name = obj.params.xbz_file_name;
-                    s_unit.stim_data = obj.TDTdata;
+                    s_unit.stim_data = obj.Eventdata;
                     s_unit.amplitude = max(abs(obj.waveforms.mean{id}));
                     %                     s_unit.start_times = obj.start_times;
                     %                     s_unit.end_times =obj.end_times;
-                    unitname= [animal_name 'u00001']; %03/03/20 changed from u001 to u00001
+                    unitname= [project_name 'u00001']; %03/03/20 changed from u001 to u00001
                     if isempty(unit_list.data)
                         save(fullfile(save_dir,unitname),'s_unit')
                         unit_list.data{1,1} = 1;
@@ -333,6 +346,8 @@ classdef tjxS < handle
                         %                         unit_list.data{1,4} = s_unit.xbz_file_name;
                         unit_list.data{1,4} = s_unit.cid;
                         unit_list.data{1,5} = fname;
+                        unit_list.data{size((unit_list.data),1),6} = animalname;
+                        unit_list.data{size((unit_list.data),1),7} = experiment;
                     else
                         unitname = [unitname(1:end-length(num2str(size((unit_list.data),1)+1))) num2str(size((unit_list.data),1)+1)];
                         save(fullfile(save_dir,unitname),'s_unit')
@@ -342,8 +357,8 @@ classdef tjxS < handle
                         %                         unit_list.data{size((unit_list.data),1),4} = s_unit.xbz_file_name;
                         unit_list.data{size((unit_list.data),1),4} = s_unit.cid;
                         unit_list.data{size((unit_list.data),1),5} = fname;
-                        
-                        
+                        unit_list.data{size((unit_list.data),1),6} = animalname;
+                        unit_list.data{size((unit_list.data),1),7} = experiment;
                     end
                     save(fullfile(save_dir,unit_list_name),'unit_list')
                 end

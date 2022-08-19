@@ -16,10 +16,21 @@ Nchannels = 32;
 % file for the first channel. chanMap(1:2) = [33 34] in my case, which happen to
 % be dead channels. 
 
-chanMap = [ 3 2 29 32 5 1 27 4 31 30 7 13 25 6 19 28 ...
-    9 15 23 8 1 26 11 14 21 9 20 22 10 16 24 18];
+chanMap = [ 3 17 13 31 5 1 11 19 15 29 7 6 9 21 12 27 ...
+    2 8 16 23 10 25 4 22 14 20 28 30 18 24 32 26];
 
 
+xcoords = xcoords/50;
+ycoords = ycoords/50;
+
+ycoords = ycoords +1;
+xcoords = xcoords +2;
+
+T = zeros(12,3);
+
+for c = 1:32
+    T(ycoords(c),xcoords(c)) = c;
+end
 
 
 % the first thing Kilosort does is reorder the data with data = data(chanMap, :).

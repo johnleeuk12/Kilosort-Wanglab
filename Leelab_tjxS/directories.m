@@ -1,4 +1,4 @@
-function [fpath, savepath] = directories(PC_name,animal_name)
+function [fpath, savepath] = directories(PC_name)
 % Select PC name : Chamber_T, 426_Analysis 426_John
 
 switch PC_name
@@ -17,6 +17,7 @@ switch PC_name
         start_path = 'D:\';
         kilo_path = 'Kilosort2';
         analysis_path  ='\analysis-tools';
+        
     case 'LeeLab_analysis'
         start_path = 'K:\';
         kilo_path = 'Kilosort2';
@@ -27,18 +28,15 @@ end
 addpath(genpath(fullfile(start_path, 'GitHub\', kilo_path))); % path to kilosort folder
 addpath(genpath(fullfile(start_path, 'GitHub\npy-matlab'))); % path to npy-matlab scripts
 addpath(genpath(fullfile(start_path,'GitHub', analysis_path)));
+addpath(genpath(fullfile(start_path,'GitHub\Kilosort-Wanglab\Analysis')));
+addpath(genpath(fullfile(start_path,'GitHub\Kilosort-Wanglab\TDTMatlabSDK')));
+addpath(genpath(fullfile(start_path,'GitHub\NPMK')));
 
-% addpath(fullfile(start_path,'Data\Experiments\', animal_name));
-fpath = fullfile(start_path,'Data\Experiments\', animal_name, filesep);
 
-savepath = fullfile(start_path,'Data\Units\',animal_name,filesep);
 
+
+fpath = fullfile(start_path,'Data');
+savepath = fullfile(start_path,'Data\Units');
 if ~isfolder(savepath)
     mkdir(savepath);
 end
-
-%, session_name);% where on disk do you want the simulation? ideally and SSD...
-
-
-% addpath(fullfile('D:\DATA\Experiments\', animal_name));
-% fpath = fullfile('D:\DATA\Experiments\', animal_name, filesep, session_name);% where on disk do you want the simulation? ideally and SSD...
