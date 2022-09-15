@@ -29,7 +29,7 @@ addpath(genpath(fullfile(start_path, 'GitHub\', kilo_path))); % path to kilosort
 addpath(genpath(fullfile(start_path, 'GitHub\npy-matlab'))); % path to npy-matlab scripts
 addpath(genpath(fullfile(start_path,'GitHub', analysis_path)));
 addpath(genpath(fullfile(start_path,'GitHub\Kilosort-Wanglab\Analysis')));
-addpath(genpath(fullfile(start_path,'GitHub\Kilosort-Wanglab\TDTMatlabSDK')));
+addpath(genpath(fullfile(start_path,'GitHub\TDTMatlabSDK')));
 addpath(genpath(fullfile(start_path,'GitHub\NPMK')));
 
 

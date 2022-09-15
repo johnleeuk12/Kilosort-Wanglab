@@ -16,10 +16,10 @@ useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulate
 
 % session_name = 
 
-fpath = fullfile('D:\Data\YS');
+fpath = fullfile('D:\DATA\HPWT\HPWTjh1-220908-140007');
 
 
-filename = '220609_controllcre-_3_OFC_L_2600um.ns5';
+filename = 'JHL_MCR-220801-164829_HPWTjh1-220908-140007';
 % filename = 'TDTsample';
 
 
@@ -38,10 +38,10 @@ pathToYourConfigFile = 'D:\\GitHub\Kilosort-Wanglab'; % take from Github folder 
 run(fullfile(pathToYourConfigFile, 'Blackrock_config.m'))
 % run(fullfile(pathToYourConfigFile, 'TDT_config.m'))
 
-ops.trange = [0 Inf]; % time range to sort
+ops.trange = [2700 inf]; % time range to sort
 ops.useGit = false;
 
-ops.datatype = 'ns5';
+ops.datatype = 'tev';
 % ops.ephys_type = file_type;
 %%
 % convert to binary
@@ -55,11 +55,11 @@ if ~isempty(fs)
 else
     if strcmp(ops.datatype , 'ns5')
         NSxToHLnew(ops,[fpath,filesep, filename]);
-        ops.datatype = 'dat';
+%         ops.datatype = 'dat';
     elseif strcmp(ops.datatype , 'tev')
         sr = TDTtoDAT(fpath,filename);
         ops.fs = sr;
-        ops.datatype = 'dat';
+%         ops.datatype = 'dat';
         
     end
 end

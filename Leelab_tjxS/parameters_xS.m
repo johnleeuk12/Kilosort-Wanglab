@@ -8,13 +8,13 @@ x.fpath2 = fullfile(x.fpath,username,fpath2);
 
 
 %% Modify from here 
-x.fname = '220609_controllcre-_3_OFC_L_2600um.ns5.dat';
+x.fname = 'test';
 x.figure_on = 0;
-x.file_type = 'BR';
+x.file_type = 'TDT';
 
 % Name of projects
 x.projects = {
-    'Project1'
+    'HP_timescale'
     };
 
 
@@ -22,9 +22,9 @@ x.projects = {
 % sampling rate. 
 
 % blackrock or DBC
-x.fs = 30000;
+% x.fs = 30000;
 % TDT
-% x.fs = 24414;
+x.fs = 24414;
 
 
 

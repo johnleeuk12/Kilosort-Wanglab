@@ -15,22 +15,22 @@ Nchannels = 32;
 % an index to dead channels too). chanMap(1) is the row in the raw binary
 % file for the first channel. chanMap(1:2) = [33 34] in my case, which happen to
 % be dead channels. 
+% 
+% chanMap = [ 3 17 13 31 5 1 11 19 15 29 7 6 9 21 12 27 ...
+%     2 8 16 23 10 25 4 22 14 20 28 30 18 24 32 26];
 
-chanMap = [ 3 17 13 31 5 1 11 19 15 29 7 6 9 21 12 27 ...
-    2 8 16 23 10 25 4 22 14 20 28 30 18 24 32 26];
+chanMap = [1:32];
+% xcoords = xcoords/50;
+% ycoords = ycoords/50;
+% 
+% ycoords = ycoords +1;
+% xcoords = xcoords +2;
 
-
-xcoords = xcoords/50;
-ycoords = ycoords/50;
-
-ycoords = ycoords +1;
-xcoords = xcoords +2;
-
-T = zeros(12,3);
-
-for c = 1:32
-    T(ycoords(c),xcoords(c)) = c;
-end
+% T = zeros(12,3);
+% 
+% for c = 1:32
+%     T(ycoords(c),xcoords(c)) = c;
+% end
 
 
 % the first thing Kilosort does is reorder the data with data = data(chanMap, :).
@@ -38,9 +38,10 @@ end
 % meaning not dead or used for non-ephys data
 
 connected = true(Nchannels, 1);
-% connected(find(chanMap == 21)) = false;
-% connected(find(chanMap == 63)) = false;
-% connected(find(chanMap == 15)) = false;
+% connected(find(chanMap == 2)) = false;
+% connected(find(chanMap == 4)) = false;
+% connected(find(chanMap == 6)) = false;
+% connected(find(chanMap == 8)) = false;
 
 % connected(64) = false;
 

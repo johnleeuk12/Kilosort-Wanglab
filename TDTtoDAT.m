@@ -4,15 +4,17 @@ addpath('D:\GitHub\TDTMatlabSDK');
 % curr_path = 'D:\Data\example_TDT recording data';
 
 
-TDT_data = TDTbin2mat(fpath,'STORE','SU_1');% load TDT data in matlab
+TDT_data = TDTbin2mat(fpath); %,'STORE','');% load TDT data in matlab
 %%
 data=TDT_data.streams.SU_1.data; % single unit data after filtering and referencing
+
+% data = data*1e6;
 
 sr=TDT_data.streams.SU_1.fs; % sampling rate
 clearvars TDT_data % remove unused data from memory
 
 %%
-newFilename = [curr_path filesep fname '.dat'];
+newFilename = [fpath filesep fname '.dat'];
 
 
 FIDw = fopen(newFilename, 'w');

@@ -79,7 +79,11 @@ classdef tjxS < handle
             global spike_times_all spike_clusters Cchannels Cids Cgroups new_channels
             
             % load sorted spikes for entire session
-            spike_times_all = readNPY(fullfile(obj.params.fpath2, 'spike_times.npy'));
+            try
+                spike_times_all = readNPY(fullfile(obj.params.fpath2, 'spike_times_original.npy'));
+            catch
+                spike_times_all = readNPY(fullfile(obj.params.fpath2, 'spike_times.npy'));
+            end
             spike_times_all = double(spike_times_all);
             spike_clusters = readNPY(fullfile(obj.params.fpath2, 'spike_clusters.npy'));
             [Cids, Cgroups] = readClusterGroupsCSV(fullfile(obj.params.fpath2, 'cluster_group.tsv'));
@@ -128,7 +132,14 @@ classdef tjxS < handle
 %             filepath = fullfile(obj.params.fpath, obj.params.session_name, filesep, fname);
             %             filepath = fullfile(fpath,filesep,fname);
             
-            filepath = fullfile(obj.params.fpath2,obj.params.fname);
+            filepath = dir(fullfile(obj.params.fpath2, '*.dat'));
+            
+            if strcmp(filepath(1).name,'temp_wh.dat')
+                filepath = fullfile(obj.params.fpath2,filepath(2).name);
+            else
+                filepath = fullfile(obj.params.fpath2,filepath(1).name);
+            end
+%             filepath = fullfile(obj.params.fpath2,obj.params.fname);
             fid = fopen(filepath,'r');
             buff = fread(fid,'*int16');
             fclose(fid);
@@ -170,7 +181,7 @@ classdef tjxS < handle
             if strcmp(obj.params.file_type,'BR') %blackrock systems
                 voltage_amp = 0.1;
             elseif strcmp(obj.params.file_type,'TDT') %TDT systems
-                voltage_amp = 0.4;
+                voltage_amp = 1;
             else
                 voltage_amp = 0.195;
             end

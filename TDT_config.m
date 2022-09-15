@@ -76,9 +76,9 @@ ops.ForceMaxRAMforDat   = 20e9; % maximum RAM the algorithm will try to use; on 
 % minimum firing rate on a "good" channel (0 to skip)
 ops.minfr_goodchannels = 0.1; 
 
-ops.Th =  [15 10]; %[25 10];
+ops.Th =  [25 10]; %[25 10];
 % how important is the amplitude penalty (like in Kilosort1, 0 means not used, 10 is average, 50 is a lot) 
-ops.lam = 15;  
+ops.lam = 20;  
 
 % splitting a cluster at the end requires at least this much isolation for each sub-cluster (max = 1)
 ops.AUCsplit = 0.9; 
