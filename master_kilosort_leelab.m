@@ -16,10 +16,10 @@ useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulate
 
 % session_name = 
 
-fpath = fullfile('D:\DATA\HPWT\HPWTjh1-220908-140007');
+fpath = fullfile('D:\DATA\example_BR\200519_HP#4_AC_1267um_001');
 
 
-filename = 'JHL_MCR-220801-164829_HPWTjh1-220908-140007';
+filename = '200519_HP#4_AC_1267um_001.ns5';
 % filename = 'TDTsample';
 
 
@@ -35,13 +35,13 @@ addpath(genpath('D:\\GitHub\npy-matlab')) % path to npy-matlab scripts
 addpath(genpath('D:\GitHub\NPMK\NPMK'))
 
 pathToYourConfigFile = 'D:\\GitHub\Kilosort-Wanglab'; % take from Github folder and put it somewhere else (together with the master_file)
-run(fullfile(pathToYourConfigFile, 'Blackrock_config.m'))
-% run(fullfile(pathToYourConfigFile, 'TDT_config.m'))
+% run(fullfile(pathToYourConfigFile, 'Blackrock_config.m'))
+run(fullfile(pathToYourConfigFile, 'TDT_config.m'))
 
-ops.trange = [2700 inf]; % time range to sort
+ops.trange = [0 inf]; % time range to sort
 ops.useGit = false;
 
-ops.datatype = 'tev';
+ops.datatype = 'ns5';
 % ops.ephys_type = file_type;
 %%
 % convert to binary

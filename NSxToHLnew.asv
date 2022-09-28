@@ -101,28 +101,17 @@ catch
     Nbuff = 32*1024;
     % Opening the output file for saving
     FIDw = fopen(newFilename, 'w');
-    disp('Writing the converted data into the new .dat file...');
     
     for s = 1:seg_size
         NS5.Data{s} = NS5.Data{s}*4;
-        Nbatch = floor(size(NS5.Data{s},2)/Nbuff);
+        Nbatch = size(NS5.Data{s},2)/Nbuff;
         for batch = 1:Nbatch+ 1
             ipoint = (batch-1)*Nbuff +1;
-            try
-                data = NS5.Data{s}(1:ops.Nchan,ipoint:ipoint+Nbuff);
-            catch
-                batch_end = size(NS5.Data{s},2)-Nbatch*Nbuff;
-                data = NS5.Data{s}(1:ops.Nchan,ipoint:ipoint+batch_end-1);
-            end
-            
-            % Writing data into file
-            fwrite(FIDw, data, 'int16');
-            if mod(batch,100) ==0
-               fprintf('Time %3.0fs. batch %3.0f/ %3.0f.  \n', toc,batch,Nbatch);
-            end
-            
-        end
-        
+            if
+            data = NS5.Data{s}(ipoint:ipoint+Nbatch);
+        % Writing data into file
+        disp('Writing the converted data into the new .dat file...');
+        fwrite(FIDw, data, 'int16');
     end
     fclose(FIDw);
     
