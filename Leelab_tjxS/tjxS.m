@@ -148,6 +148,10 @@ classdef tjxS < handle
                        
             buff = reshape(buff,obj.params.Nb_ch,[]);
             
+            lick = buff(65,:);
+            save(fullfile(obj.params.fpath2,'lick.mat'),'lick')
+            buff = buff(1:obj.params.Nb_ch_real);
+            
             fprintf('Time %3.0fs. loading data... complete! \n', toc);
             
             %// preprocessing
@@ -171,7 +175,7 @@ classdef tjxS < handle
 %                 else
 %                     spike_times_SU{id} = spike_times_SU{id}(find(spike_times_SU{id} < obj.seg_length(obj.params.session_id)-60));
 %                 end
-                obj.waveforms.raw{id} = zeros(32,60,length(spike_times_SU{id}));
+                obj.waveforms.raw{id} = zeros(obj.params.Nb_ch,60,length(spike_times_SU{id}));
             end
             
             obj.SUU = [obj.SUU SU]; %NEW LINE
@@ -251,9 +255,9 @@ classdef tjxS < handle
                     obj.SU_good(id) = 0;
                 else
                     % extracting templates via SVD
-                    obj.templates{id}.data = zeros(obj.params.Nb_ch,60);
+                    obj.templates{id}.data = zeros(obj.params.Nb_ch_real,60);
                     %                  obj.templates{id}.best_ch = [];
-                    for ch = 1:obj.params.Nb_ch
+                    for ch = 1:obj.params.Nb_ch_real
                         temp = [];
                         temp(:,:) = obj.waveforms.raw{id}(ch,:,:);
                         [Y,Sig,X] = svd(temp,'econ');

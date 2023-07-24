@@ -1,6 +1,6 @@
 %  create a channel map file
 
-function make_HarrisChannelMap(fpath)
+function make_DBCChannelMap(fpath)
 % function make_HarrisChannelMap()
 % create a channel Map file for simulated data (eMouse)
 
@@ -23,7 +23,10 @@ Nchannels = 64;
 chanMap = [38 34 44 61 40 36 46 60 42 48 41 58 45 35 39 56 ...
            43 33 37 54 49 52 63 50 47 53 51 55 57 62 59 64 ...
            1 6 3 8 10 14 12 16 17 11 13 9 7 4 5 2 ... 
-           28 24 26 19 21 32 15 30 18 31 29 22 20 25 23 27];
+           28 24 26 19 21 32 15 30 18 31 29 22 20 25 23 27,65,66,67];
+       % 65,66,67
+       
+       
 % xcoords = xcoords/50;
 % ycoords = ycoords/50;
 % 
@@ -42,6 +45,7 @@ chanMap = [38 34 44 61 40 36 46 60 42 48 41 58 45 35 39 56 ...
 % meaning not dead or used for non-ephys data
 
 connected = true(Nchannels, 1);
+% connected  = [connected; false; false; false];
 % connected(find(chanMap == 2)) = false;
 
 
@@ -55,16 +59,20 @@ connected = true(Nchannels, 1);
 % I will take this information from the specifications of the probe. These
 % are in um here, but the absolute scaling doesn't really matter in the
 % algorithm. 
+xcoords   = repmat([1 2 3 4]', 1, Nchannels/4);
+xcoords   = 20*xcoords(:);
 
-xcoords   = repmat([1;2;3],(Nchannels-2)/3,1);
-xcoords   = [2;xcoords;2]*50;
-
-ycoords   = repmat(1:(Nchannels-2)/3, 3, 1);
-ycoords   = reshape(ycoords,[],1);
-ycoords   = [0; ycoords; ((Nchannels-2)/3+1)];
-ycoords   = ycoords*25;
-ycoords   = flipud(ycoords);
-
+xcoords = [xcoords; 1;1;1];
+ycoords   = repmat(1:Nchannels/4, 4, 1);
+%  ycoords(2,:) = ycoords(2,:)+1;
+% ycoords(4,:) = ycoords(4,:)+1;
+ycoords   = 20*ycoords;
+ycoords(2,:) = ycoords(2,:)+10;
+ycoords(4,:) = ycoords(4,:)+10;
+ycoords = ycoords(:);
+ycoords = abs(ycoords-330)+10;
+% ycoords = flipud(ycoords);
+ycoords = [ycoords;1;1;1];
 % Often, multi-shank probes or tetrodes will be organized into groups of
 % channels that cannot possibly share spikes with the rest of the probe. This helps
 % the algorithm discard noisy templates shared across groups. In

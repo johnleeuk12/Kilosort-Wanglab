@@ -13,7 +13,7 @@ ops.root                = fullfile(fpath); % 'openEphys' only: where raw files a
 % ops.chanMap             = fullfile('D:\DATA\Spikes\HarrisProbe\', 'chanMap.mat'); % make this file using createChannelMapFile.m		
 
 ops.fs                  = 30000;        % sampling rate		(omit if already in chanMap file)
-ops.NchanTOT            = 64;           % total number of channels (omit if already in chanMap file)
+ops.NchanTOT            = 72;           % total number of channels (omit if already in chanMap file)
 ops.Nchan               = 64;           % number of active channels (omit if already in chanMap file)
 ops.Nfilt               = 256;           % number of clusters to use (2-4 times more than Nchan, should be a multiple of 32)     		
 ops.nNeighPC            = 12; % visualization only (Phy): number of channnels to mask the PCs, leave empty to skip (12)		
@@ -74,17 +74,17 @@ ops.ForceMaxRAMforDat   = 20e9; % maximum RAM the algorithm will try to use; on 
 %% New config options for Kilosort2
 
 % minimum firing rate on a "good" channel (0 to skip)
-ops.minfr_goodchannels = 0.1; 
+ops.minfr_goodchannels = 0; 
 
-ops.Th =  [25 10]; %[25 10];
+ops.Th =  [15 9]; %[25 10];
 % how important is the amplitude penalty (like in Kilosort1, 0 means not used, 10 is average, 50 is a lot) 
-ops.lam = 20;  
+ops.lam = 10;  
 
 % splitting a cluster at the end requires at least this much isolation for each sub-cluster (max = 1)
 ops.AUCsplit = 0.9; 
 
 % minimum spike rate (Hz), if a cluster falls below this for too long it gets removed
-ops.minFR = 1/10; 
+ops.minFR = 0.02; 
 
 % number of samples to average over (annealed from first to second value) 
 ops.momentum = [20 400]; 

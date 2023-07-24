@@ -16,12 +16,13 @@ useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulate
 
 % session_name = 
 
-fpath = fullfile('D:\DATA\example_BR\200519_HP#4_AC_1267um_001');
+% fpath = fullfile('D:\DATA\HPWT\HPWTjh2-220930-160047');
+fpath = fullfile('D:\DATA\Reversal Learning\RLn602\2023-07-14_16-30-11');
 
-
-filename = '200519_HP#4_AC_1267um_001.ns5';
+% filename = 'JHL_MCR-220801-164829_HPWTjh2-220930-160047';
 % filename = 'TDTsample';
 
+filename = 'continuous';
 
 if ~exist(fpath, 'dir'); mkdir(fpath); end
 
@@ -36,12 +37,15 @@ addpath(genpath('D:\GitHub\NPMK\NPMK'))
 
 pathToYourConfigFile = 'D:\\GitHub\Kilosort-Wanglab'; % take from Github folder and put it somewhere else (together with the master_file)
 % run(fullfile(pathToYourConfigFile, 'Blackrock_config.m'))
-run(fullfile(pathToYourConfigFile, 'TDT_config.m'))
+% run(fullfile(pathToYourConfigFile, 'TDT_config.m'))
+
+run(fullfile(pathToYourConfigFile, 'Harris_config2.m'))
 
 ops.trange = [0 inf]; % time range to sort
 ops.useGit = false;
 
-ops.datatype = 'ns5';
+% ops.datatype = 'tev';
+ops.datatype = 'dat';
 % ops.ephys_type = file_type;
 %%
 % convert to binary
@@ -88,6 +92,8 @@ elseif strcmp(ops.datatype , 'ns5')
     make_BlackrockChannelMap(fpath)
 elseif strcmp(ops.datatype , 'tev')
     make_TDTChannelMap(fpath)
+elseif strcmp(ops.datatype , 'dat')
+    make_DBCChannelMap(fpath)
 end
 
 
@@ -114,7 +120,9 @@ ops.fbinary = fullfile(rootZ, fs(1).name);
 rez = preprocessDataSub(ops);
 %
 % NEW STEP TO DO DATA REGISTRATION
-rez = datashift2(rez, 1); % last input is for shifting data
+rez = datashift2(rez, ops.nblocks); % last input is for shifting data
+
+
 
 % ORDER OF BATCHES IS NOW RANDOM, controlled by random number generator
 iseed = 1;
@@ -143,8 +151,11 @@ fprintf('found %d good units \n', sum(rez.good>0))
 fprintf('Saving results to Phy  \n')
 rezToPhy(rez, rootZ);
 
+% save driftmap
 
-
+uu = figure(194);
+savefig(uu,fullfile(fpath,filesep,'driftmap.fig'))
+disp('driftmap saved')
 
 
 
