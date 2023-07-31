@@ -33,12 +33,16 @@ x.fs = 30000;
 
 % Probe channel mapping information
 x.Nb_ch = 72;
-x.Nb_ch_real = 64;
+x.Nb_ch_real = 72;
 % load('
-load('chanMap_DBC.mat');
+load('chanMap_DBC2.mat');
+% 
+% x.chanMap = chanMap(1:x.Nb_ch_real);
+% x.xcoords = round(xcoords(1:x.Nb_ch_real)/50);
+% x.ycoords = round(ycoords(1:x.Nb_ch_real)/50);
 
-x.chanMap = chanMap(1:x.Nb_ch_real);
-x.xcoords = round(xcoords(1:x.Nb_ch_real)/50);
-x.ycoords = round(ycoords(1:x.Nb_ch_real)/50);
 
+x.chanMap = chanMap
+x.xcoords = round(xcoords/50);
+x.ycoords = round(ycoords/50);
 

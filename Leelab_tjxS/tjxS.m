@@ -150,7 +150,7 @@ classdef tjxS < handle
             
             lick = buff(65,:);
             save(fullfile(obj.params.fpath2,'lick.mat'),'lick')
-            buff = buff(1:obj.params.Nb_ch_real);
+%             buff = buff(1:obj.params.Nb_ch_real);
             
             fprintf('Time %3.0fs. loading data... complete! \n', toc);
             
