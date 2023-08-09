@@ -11,12 +11,13 @@ addpath(genpath('D:\\GitHub\spikes')) % path to npy-matlab scripts
 
 
 
-fpath = fullfile('D:\DATA\Reversal Learning\RLn602\2023-07-12_15-27-21');
+fpath = fullfile('D:\DATA\Reversal Learning\RLn602\2023-07-27_11-07-17');
 eventpath = 'events\OE_FPGA_Acquisition_Board-114.Rhythm Data\TTL';
+timepath = 'OE_DAQ';
 savedir = 'D:\DATA\Units\RL';
 animal_id = 'RLn602';
-region = 'PPC';
-date = '2023-07-13_14-49-07';
+region = 'A1';
+date = '2023-07-27_11-07-17';
 
 
 
@@ -61,19 +62,23 @@ gwfparams.nWf = 2000;                    % Number of waveforms per unit to pull 
 
 wf = {};
 for c = 1:length(sp.cgs)
-
+    temp = [];
     gwfparams.spikeTimes = ceil(sp.st(sp.clu==sp.cids(c))*30000); % Vector of cluster spike times (in samples) same length as .spikeClusters
     gwfparams.spikeClusters = sp.clu(sp.clu==sp.cids(c));
     wf{c} = getWaveForms(gwfparams);
+    temp(:,:) =  wf{c}.waveFormsMean(1,:,:);
+    [~,wf{c}.bestch] = max(mean(abs(temp),2));
+
 end
 
 clear gwfparams
-% 
+% % 
 % test = [];
 % 
 % test(:,:) =  wf{2}.waveFormsMean(1,:,:);
 % 
-% figure
+% test2 = mean(abs(test),2);
+% % figure
 % for ch = 1:64
 %     plot(test(ch,:))
 %     hold on 
@@ -90,6 +95,9 @@ event.state = readNPY(fullfile(fpath, filesep, eventpath, filesep, 'states.npy')
 event.time = readNPY(fullfile(fpath, filesep, eventpath, filesep, 'timestamps.npy'));
 timestamps = event.time(event.state == 1);
 
+Y = readNPY(fullfile(fpath,filesep,timepath, filesep,'timestamps.npy'));
+timestamps = timestamps-Y(1);
+clear Y
 %% save units
 
 
@@ -123,8 +131,9 @@ end
 for c = 1:length(sp.cgs)
     if sp.cgs(c) ==2
         s_unit = {};
-%         s_unit.id = 1;
-%         s_unit.depth = [];
+        
+        % Get waveform information
+        s_unit.best_ch = wf{c}.bestch;
 %         %                 s_unit.ch = CchanMap(Cchannels(SU(id)));
 %         s_unit.templates = obj.templates{id};
         s_unit.cid = sp.cids(c);

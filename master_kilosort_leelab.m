@@ -17,7 +17,7 @@ useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulate
 % session_name = 
 
 % fpath = fullfile('D:\DATA\HPWT\HPWTjh2-220930-160047');
-fpath = fullfile('D:\DATA\Reversal Learning\RLn602\2023-07-14_16-30-11');
+fpath = fullfile('D:\DATA\Reversal Learning\RLn602\2023-08-01_11-01-22');
 
 % filename = 'JHL_MCR-220801-164829_HPWTjh2-220930-160047';
 % filename = 'TDTsample';
