@@ -1,6 +1,19 @@
 function [O] = event_time_presentation(opentype,fpath, fname)
 
+%{
+EDIT LOG
+2024/01/26 JHL
+Code to convert Presentation log files into a Matlab variable integrated
+into Pool.
+currently event_codes are modified below. As different event_code IDs are
+generated from various experiments, additional code structures will be
+added to integrate this. 
 
+For ease of use, rename all .log files into
+'YYYY-MM-DD_animal_name_region.log'
+
+
+%}
 
 event_code = [211 212 2112 2122 1211 1212 12112 12122 8880];
 O = {};

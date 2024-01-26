@@ -1,14 +1,15 @@
 
 function Pool = pool_data_ephys(animal_name,varargin)
 
+%{
+EDIT LOG
+
+%}
 
 
-% animal_name = 'RLn602';
 addpath(fullfile('D:\DATA', filesep,'Units',filesep,'RL',animal_name)); % path to Units
-
-
 expfpath = fullfile('D:\DATA', filesep,'Experiments',filesep,'RL',animal_name);
-addpath(fullfile('D:\DATA', filesep,'Experiments',filesep,'RL',animal_name)); % path to Units
+addpath(expfpath); % path to Experiment log files. This folder should also contain a folder for Licks
 
 load([animal_name, '_unit_list.mat']);
 
@@ -20,9 +21,9 @@ load([animal_name, '_unit_list.mat']);
 
 %% Pool data 
 
-
 % varargin{1} is area name : 'PPC', 'A1', 'IC'
-% varargin{1} = 'PPC';
+
+
 u_list = unit_list.data(find(strcmp(unit_list.data(:,7),varargin{1})),1);
 
 Pool = {};

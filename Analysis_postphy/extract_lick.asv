@@ -1,4 +1,13 @@
+%{
+EDIT LOG
+2024/01/26 JHL
 
+Within the Experiments/animal_name folder, create a folder named Lick
+this folder should originally contain all the lick.mat files (raw analog
+signal for lick detection) from the post-phy analysis code.
+change files 
+
+%} 
 
 animal_name= 'RLn602';
 
@@ -9,7 +18,6 @@ list = dir(expfpath);
 
 fs = 3e4;
 for n = 3:length(list)
-    n = 11
     raw_L = load(list(n).name);
     L = downsample(raw_L.lick,fs/1e3);
     gL = gradient(double(L));
