@@ -6,7 +6,7 @@ stim_order = [1,2,7,8,3,4];
 c_list = {'r','b','r','b','r','b','r','b'};
 ls_list = {'-','-','--','--',':',':',':',':'};
 label = {'5_{r1}','10_{r1}','5_{r2}','10_{r2}','5_{CD}','10_{CD}','5_{CD}','10_{CD}'};
-for p = 151:length(Pool)
+for p = 1:length(Pool)
     
     
     f = figure(p);

@@ -6,11 +6,11 @@ function master_Harris3()
 useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulated data takes 55 seconds on gtx 1080 + M2 SSD.
 
 % session_name ='2020-01-08_13-50-00';
-session_name = 'H15T2S1_concat';
+session_name = 'H3T6S1_concat';
 concat_OE(session_name);
 
 Animal_name = 'M60F';
-fpath    = fullfile('C:\DATA\OpenEphys', filesep, Animal_name, filesep, session_name); % where on disk do you want the simulation? ideally and SSD...
+fpath    = fullfile('D:\DATA\Experiments', filesep, Animal_name, filesep, session_name); % where on disk do you want the simulation? ideally and SSD...
 file_type = '100';
 
 if ~exist(fpath, 'dir'); mkdir(fpath); end
@@ -19,13 +19,20 @@ rootZ = fpath;
 
 
 % rmpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort'))
-addpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort2')) % path to kilosort folder
-% rmpath('C:\Users\Seth\Documents\GitHub\KiloSort2');
-% addpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort-main'))
-addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
+% addpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort2')) % path to kilosort folder
+% % rmpath('C:\Users\Seth\Documents\GitHub\KiloSort2');
+% % addpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort-main'))
+% addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
 
-pathToYourConfigFile = 'C:\Users\Seth\Documents\GitHub\Kilosort-Wanglab'; % take from Github folder and put it somewhere else (together with the master_file)
-run(fullfile(pathToYourConfigFile, 'Harris_config2.m'))
+addpath(genpath('D:\GitHub\Kilosort2')) % path to kilosort folder
+
+addpath(genpath('D:\\GitHub\npy-matlab')) % path to npy-matlab scripts
+
+% pathToYourConfigFile = 'C:\Users\Seth\Documents\GitHub\Kilosort-Wanglab'; % take from Github folder and put it somewhere else (together with the master_file)
+pathToYourConfigFile = 'D:\GitHub\Kilosort-Wanglab'; % take from Github folder and put it somewhere else (together with the master_file)
+
+
+run(fullfile(pathToYourConfigFile, 'Harris_config3.m'))
 
 ops.trange = [0 Inf]; % time range to sort
 ops.ephys_type = file_type;
@@ -82,8 +89,13 @@ toc
 
 
 % find the binary file
-% fs          = [dir(fullfile(rootZ, '*.bin')) dir(fullfile(rootZ, '*.dat'))];
-% ops.fbinary = fullfile(rootZ, fs(1).name);
+fs          = [dir(fullfile(rootZ, '*.bin')) dir(fullfile(rootZ, '*.dat'))];
+
+if strcmp(fs(1).name, 'temp_wh.dat')
+    ops.fbinary = fullfile(rootZ, fs(2).name);
+else
+    ops.fbinary = fullfile(rootZ, fs(1).name);
+end
 
 % preprocess data to create temp_wh.dat
 rez = preprocessDataSub(ops);

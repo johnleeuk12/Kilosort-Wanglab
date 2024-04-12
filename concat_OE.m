@@ -5,31 +5,31 @@ function concat_OE(concat_folder_name)
 useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulated data takes 55 seconds on gtx 1080 + M2 SSD.
 
 session_list = {
-'2021-05-25_14-53-49'
-'2021-05-25_14-58-54'
-'2021-05-25_15-04-00'
-'2021-05-25_15-09-47'
-'2021-05-25_15-24-32'
-'2021-05-25_15-39-46'
-'2021-05-25_16-12-55'
-'2021-05-25_16-40-39'
+'2020-12-21_15-09-50'
+'2020-12-21_15-12-05'
+'2020-12-21_15-14-30'
+'2020-12-21_15-18-41'
 
 };
 % concat_folder_name = 'H11T6S1_concat';
 
 
 Animal_name = 'M60F';
-addpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort2')) % path to kilosort folder
-addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
+% addpath(genpath('C:\Users\Seth\Documents\GitHub\KiloSort2')) % path to kilosort folder
+% addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
+
+addpath(genpath('D:\GitHub\Kilosort2')) % path to kilosort folder
+
+addpath(genpath('D:\\GitHub\npy-matlab')) % path to npy-matlab scripts
 file_type = '100';
-pathToYourConfigFile = 'C:\Users\Seth\Documents\GitHub\Kilosort-Wanglab'; % take from Github folder and put it somewhere else (together with the master_file)
+pathToYourConfigFile = 'D:\GitHub\Kilosort-Wanglab'; % take from Github folder and put it somewhere else (together with the master_file)
 
 %%
 
 for s = 1:length(session_list)
     session_name =session_list{s};
     % session_name = 'H6T3S1_concat';
-    fpath    = fullfile('C:\DATA\OpenEphys', filesep, Animal_name, filesep, session_name); % where on disk do you want the simulation? ideally and SSD...
+    fpath    = fullfile('D:\DATA\Experiments', filesep, Animal_name, filesep, session_name); % where on disk do you want the simulation? ideally and SSD...
     rootZ = fpath;
     
     try exist(fpath, 'dir');
@@ -46,7 +46,7 @@ for s = 1:length(session_list)
 %     addpath(genpath('C:\Users\Seth\Documents\GitHub\npy-matlab')) % path to npy-matlab scripts
     
 %     pathToYourConfigFile = 'C:\Users\Seth\Documents\GitHub\Kilosort-Wanglab'; % take from Github folder and put it somewhere else (together with the master_file)
-    run(fullfile(pathToYourConfigFile, 'Harris_config2.m'))
+    run(fullfile(pathToYourConfigFile, 'Harris_config3.m'))
     
     ops.trange = [0 Inf]; % time range to sort
     ops.ephys_type = file_type;
@@ -96,10 +96,11 @@ end
 
 %% concatenating files
 
-fname = 'test_binary.dat';
-filepath    = fullfile('C:\DATA\OpenEphys', filesep, Animal_name, filesep, session_list, filesep, fname);
+fname1 = 'test_binary.dat';
+fname2 = 'test_binary.dat';
+filepath    = fullfile('D:\DATA\Experiments', filesep, Animal_name, filesep, session_list, filesep, fname1);
 
-fpath    = fullfile('C:\DATA\OpenEphys', filesep, Animal_name, filesep, concat_folder_name); % where on disk do you want the simulation? ideally and SSD...
+fpath    = fullfile('D:\DATA\Experiments', filesep, Animal_name, filesep, concat_folder_name); % where on disk do you want the simulation? ideally and SSD...
 
 if ~exist(fpath, 'dir'); mkdir(fpath); end
 
@@ -111,7 +112,7 @@ ops.datatype = 'dat';
 buff= {};
 % Big_buff = [];
 tic
-fileID = fopen(fullfile(fpath,filesep,fname),'w');
+fileID = fopen(fullfile(fpath,filesep,fname2),'w');
 
 for t = 1:length(session_list)
 
