@@ -1,4 +1,13 @@
+
 function [raster2, rate, Lick2, Lick_rate] = gather_raster_ephys(PreStim, PostStim, Pool)
+
+%{
+from variable Pool, gather spk data in raster and rate format.
+Gather Lick into lick raster and lick rate format.
+
+
+%}
+
 
 % PreStim and PostStim should be in s. 
 fprintf('calculating rate and raster \n')

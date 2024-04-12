@@ -2,7 +2,7 @@
 function plot_raster(Pool, raster, rate, lick, lick_rate)
 
 
-stim_order = [1,2,7,8,3,4];
+stim_order = [1,2,7,8,3,4]; % R1_Go, R1_NoGo, RT_Go, RT_NoGo, R2_Go, R2_NoGo
 c_list = {'r','b','r','b','r','b','r','b'};
 ls_list = {'-','-','--','--',':',':',':',':'};
 label = {'5_{r1}','10_{r1}','5_{r2}','10_{r2}','5_{CD}','10_{CD}','5_{CD}','10_{CD}'};

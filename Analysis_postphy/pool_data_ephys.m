@@ -2,7 +2,9 @@
 function Pool = pool_data_ephys(animal_name,varargin)
 
 %{
-EDIT LOG
+ 04/14/2024 JHL
+Pool data using processed datasets from phy and tjx
+Change paths below if needed.
 
 %}
 
