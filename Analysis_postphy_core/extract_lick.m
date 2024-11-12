@@ -9,7 +9,7 @@ change files to YYYY-MM-DD_animal_name_region.mat
 
 %} 
 
-animal_name= 'RLn602';
+animal_name= 'RLn609';
 
 expfpath = fullfile('D:\DATA', filesep,'Experiments',filesep,'RL',animal_name,filesep,'Lick');
 addpath(expfpath);

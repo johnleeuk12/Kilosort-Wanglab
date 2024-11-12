@@ -17,7 +17,7 @@ useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulate
 % session_name = 
 
 % fpath = fullfile('D:\DATA\HPWT\HPWTjh2-220930-160047');
-fpath = fullfile('D:\DATA\Reversal Learning\RLn602\2023-07-27_11-07-17');
+fpath = fullfile('D:\DATA\Reversal Learning\TSn002\2024-09-20_15-21-55\probeB');
 
 % filename = 'JHL_MCR-220801-164829_HPWTjh2-220930-160047';
 % filename = 'TDTsample';
@@ -41,7 +41,7 @@ pathToYourConfigFile = 'D:\\GitHub\Kilosort-Wanglab'; % take from Github folder 
 
 run(fullfile(pathToYourConfigFile, 'Harris_config2.m'))
 
-ops.trange = [0 inf]; % time range to sort
+ops.trange = [0 2000]; % time range to sort in sec
 ops.useGit = false;
 
 % ops.datatype = 'tev';

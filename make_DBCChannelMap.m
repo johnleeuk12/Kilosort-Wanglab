@@ -4,7 +4,7 @@ function make_DBCChannelMap(fpath)
 % function make_HarrisChannelMap()
 % create a channel Map file for simulated data (eMouse)
 
-Nchannels = 72;
+Nchannels = 64;
 
 
 
@@ -20,12 +20,28 @@ Nchannels = 72;
 %     2 8 16 23 10 25 4 22 14 20 28 30 18 24 32 26];
 
 % chanMap = [1:64];
-chanMap = [38 34 44 61 40 36 46 60 42 48 41 58 45 35 39 56 ...
-           43 33 37 54 49 52 63 50 47 53 51 55 57 62 59 64 ...
-           1 6 3 8 10 14 12 16 17 11 13 9 7 4 5 2 ... 
-           28 24 26 19 21 32 15 30 18 31 29 22 20 25 23 27 ...
-       65,66,67,68,69,70,71,72];
-       
+% -- Samtec Adaptor --
+% chanMap = [38 34 44 61 40 36 46 60 42 48 41 58 45 35 39 56 ...
+%            43 33 37 54 49 52 63 50 47 53 51 55 57 62 59 64 ...
+%            1 6 3 8 10 14 12 16 17 11 13 9 7 4 5 2 ... 
+%            28 24 26 19 21 32 15 30 18 31 29 22 20 25 23 27];
+% -- DBC adaptor correct -- (MPM probeB)      
+chanMap = [59 64 53 35 57 62 51 37 55 49 56 39 52 61 58 41 ...
+           54 63 60 43 48 45 33 47 50 44 46 42 40 36 38 34 ...
+           31 27 29 25 23 19 21 17 16 22 20 24 26 30 28 32 ...
+           5 9 7 14 12 2 18 4 155 1 3 11 13 8 10 6];       
+% %        ...
+% %        65,66,67,68,69,70,71,72];
+% -- DBC adaptor mirrored --
+% chanMap  = [37 34 43 61 39 36 45 59 41 47 42 57 46 35 40 55 ...
+%             44 33 38 53 50 51 63 49 48 54 52 56 58 62 60 64 ...
+%             1 5 3 7 9 13 11 15 18 12 14 10 8 4 6 2 27 23 25 20 ...
+%             22 32 16 30 17 31 29 21 19 26 24 28];
+% chanMap = [27 32 21 3 25 30 19 5 23 17 24 7 20 29 26 9 ...
+%            22 31 28 11 16 13 1 15 18 12 14 10 8 4 6 2 ...
+%            63 59 61 57 55 51 53 49 48 54 52 56 58 62 60 64 ...
+%            37 41 39 46 44 34 50 36 47 33 35 43 45 40 42 38];
+
        
 % xcoords = xcoords/50;
 % ycoords = ycoords/50;
@@ -45,7 +61,6 @@ chanMap = [38 34 44 61 40 36 46 60 42 48 41 58 45 35 39 56 ...
 % meaning not dead or used for non-ephys data
 
 connected = true(Nchannels, 1);
-connected(65:end) = false;
 % connected  = [connected; false; false; false];
 % connected(find(chanMap == 2)) = false;
 
@@ -82,7 +97,11 @@ ycoords = abs(ycoords-330)+10;
 % assign them all to group 1. 
 
 kcoords   = ones(Nchannels,1);
-kcoords(65:end) = 0;
+if Nchannels> 64
+    kcoords(65:end) = 0;
+    connected(65:end) = false;
+
+end
 % kcoords(1:4:end,1) =NaN;
 
 

@@ -13,7 +13,7 @@ ops.root                = fullfile(fpath); % 'openEphys' only: where raw files a
 % ops.chanMap             = fullfile('D:\DATA\Spikes\HarrisProbe\', 'chanMap.mat'); % make this file using createChannelMapFile.m		
 
 ops.fs                  = 30000;        % sampling rate		(omit if already in chanMap file)
-ops.NchanTOT            = 72;           % total number of channels (omit if already in chanMap file)
+ops.NchanTOT            = 64;           % total number of channels (omit if already in chanMap file)
 ops.Nchan               = 64;           % number of active channels (omit if already in chanMap file)
 ops.Nfilt               = 256;           % number of clusters to use (2-4 times more than Nchan, should be a multiple of 32)     		
 ops.nNeighPC            = 12; % visualization only (Phy): number of channnels to mask the PCs, leave empty to skip (12)		

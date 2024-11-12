@@ -101,12 +101,46 @@ for i = 1:size(deterror, 1)
     end
 end
 
+% trial results. Only take rule stage, not conditioning stage
+
+log  ={};
+
+for i = 1:13
+    for ii = 5:length(fromtxt{1})
+    log{ii-4,i} = fromtxt{i}{ii};
+        if i == 4
+            log{ii-4,i} = floor(str2double(log{ii-4,i})/10);
+        end
+    end
+end
+
+t_ind = find([log{:,4}] == 31 | [log{:,4}] == 35 | [log{:,4}] == 41 | [log{:,4}] == 45);
+
+h_ind = [log{t_ind,4}].';
+
+hitcode= zeros(length(h_ind),4);
+for tr  = 1:length(h_ind)
+    if h_ind(tr) == 35
+        hitcode(tr,1) = 1;
+    elseif h_ind(tr) == 45
+        hitcode(tr,2) = 1;
+    elseif h_ind(tr) == 31
+        hitcode(tr,3) = 1;
+    elseif h_ind(tr) == 41
+        hitcode(tr,4) = 1;
+    end
+end
+
+
+
 %%
 
 O = {};
 O.event_code = event_code;
 O.trial_type = temp_txt;
 O.trial_tag = ["time (ms)", "trial_type"];
+O.hit_code = hitcode;
+% O.log = log;
 O.licks = l;
 end
 %%

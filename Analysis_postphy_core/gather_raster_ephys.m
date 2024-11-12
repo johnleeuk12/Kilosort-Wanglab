@@ -32,6 +32,7 @@ spikes_pooled = {};
 
 
 rate.PSTH = {};
+rate.behav = {};
 Lick_rate.PSTH = {};
 
 raster2 ={};
@@ -46,7 +47,16 @@ for p = 1:length(Pool)
     end
 
     data_new = Pool(p).xb.trial_type(:,[4,3]);
-
+    hit_code = zeros(1,length(data_new));
+    for h = 1:length(data_new)
+        if h <201
+            hit_code(1,h) = find(Pool(p).xb.hit_code(h,:) == 1);
+%         elseif 200 <h & h<261
+%             hit_code(1,h) = 0;
+        elseif h >260 && h<461
+             hit_code(1,h) = find(Pool(p).xb.hit_code(h-60,:) == 1);
+        end
+    end
     raster.stim{p} = [];
     raster.rep{p} = [];
     raster.spikes{p} = [];
@@ -121,6 +131,7 @@ for p = 1:length(Pool)
         
 %         rate_total = [rate_total ; rate*1000];
         % calculate PSTH
+        rate.behav{p,data_new(rep,1)}(data_new(rep,2)) = hit_code(rep);
         rate.PSTH{p,data_new(rep,1)}(data_new(rep,2),:) = rep_rate*1e3;
         raster.nrep{p} = [];
         for st  = 1:size(rate.PSTH(p,:),2)

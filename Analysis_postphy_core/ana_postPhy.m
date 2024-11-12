@@ -11,13 +11,14 @@ addpath(genpath('D:\\GitHub\spikes')) % path to npy-matlab scripts
 
 
 
-fpath = fullfile('D:\DATA\Reversal Learning\RLn602\2023-07-27_11-07-17');
+fpath = fullfile('D:\DATA\Reversal Learning\TSn003\2024-10-30_13-50-34\probeC');
+event_id = 0;
 eventpath = 'events\OE_FPGA_Acquisition_Board-114.Rhythm Data\TTL';
 timepath = 'OE_DAQ';
-savedir = 'D:\DATA\Units\RL';
-animal_id = 'RLn602';
-region = 'A1';
-date = '2023-07-27_11-07-17';
+savedir = 'D:\DATA\Units\TS_2';
+animal_id = 'TSn003';
+region = 'V1';
+date = '2024-10-30_13-50-34';
 
 
 
@@ -50,13 +51,19 @@ fprintf('Time %3.0fs. loading data... complete! \n', toc);
 
 fprintf('Time %3.0fs. Extracting waveforms... \n', toc);
 
-gwfparams.buff = reshape(gwfparams.buff,72,[]);
-lick = gwfparams.buff(65,:);
-save(fullfile(fpath,filesep,'lick.mat'),'lick')
+switch event_id
+    case 1
+        gwfparams.nCh = 72;                      % Number of channels that were streamed to disk in .dat file
+        gwfparams.buff = reshape(gwfparams.buff,72,[]);
+        lick = gwfparams.buff(65,:);
+        save(fullfile(fpath,filesep,'lick.mat'),'lick')
+    case 0
+        gwfparams.buff = reshape(gwfparams.buff,64,[]);
+        gwfparams.nCh = 64;                      % Number of channels that were streamed to disk in .dat file
+end
 
 gwfparams.fileName = filepath;         % .dat file containing the raw
 gwfparams.dataType = 'int16';            % Data type of .dat file (this should be BP filtered)
-gwfparams.nCh = 72;                      % Number of channels that were streamed to disk in .dat file
 gwfparams.wfWin = [-20 40];              % Number of samples before and after spiketime to include in waveform
 gwfparams.nWf = 2000;                    % Number of waveforms per unit to pull out
 
@@ -89,15 +96,18 @@ fprintf('Time %3.0fs. Extracting waveforms... complete! \n', toc);
 
 %% extracting event time file
 
+switch event_id
+    case 1
+        event.state = readNPY(fullfile(fpath, filesep, eventpath, filesep, 'states.npy'));
+        event.time = readNPY(fullfile(fpath, filesep, eventpath, filesep, 'timestamps.npy'));
+        timestamps = event.time(event.state == 1);
 
-
-event.state = readNPY(fullfile(fpath, filesep, eventpath, filesep, 'states.npy'));
-event.time = readNPY(fullfile(fpath, filesep, eventpath, filesep, 'timestamps.npy'));
-timestamps = event.time(event.state == 1);
-
-Y = readNPY(fullfile(fpath,filesep,timepath, filesep,'timestamps.npy'));
-timestamps = timestamps-Y(1);
-clear Y
+        Y = readNPY(fullfile(fpath,filesep,timepath, filesep,'timestamps.npy'));
+        timestamps = timestamps-Y(1);
+        clear Y
+    case 0
+        timestamps = [];
+end
 %% save units
 
 
@@ -108,8 +118,11 @@ end
 unit_list_name = [animal_id '_unit_list.mat'];
 if exist(fullfile(save_dir,filesep,unit_list_name))
     load(fullfile(save_dir,unit_list_name));
-    if  ~isempty(find(strcmp(unit_list.data(:,5),date)))
-        error('Units already saved')
+    test_list = find(strcmp(unit_list.data(:,5),date));
+    if  ~isempty(test_list)
+        if strcmp(unit_list.data{test_list(end),7},region) 
+            error('Units already saved')
+        end
     end
     
 else
