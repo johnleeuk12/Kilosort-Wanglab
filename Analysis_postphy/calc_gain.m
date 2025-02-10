@@ -1,23 +1,41 @@
  
-% 
-n_arr = 1:length(Pool);
-c_list = {'r-','b--','r--','b-'};
-% l_list = {'solid','dotted','dotted','solid'};
-list_n = n_arr(list3);
-x_axis = -2:1e-3:6;
-x_axis = x_axis(1:end-1);
-for n = 1:length(list_n)
-    nn = list_n(n);
-    figure(n)
-    for pp = 1:4
-        y = smoothdata(mean(rate.PSTH{nn,pp},1),"gaussian",50);
-        plot(x_axis,y,c_list{pp},'LineWidth',2)
-        hold on
-    end
-    xlim([-0.5,1.5])
-    drawnow
-    pause(0.1)
-end
+
+%{
+
+Edit log 
+=======================================
+
+2025/02/10 JHL
+
+Calculating gain modulation for manuscript figure 1
+Currently the code isn't optimized to be run as is
+after running "determining gain" for either IC or AC data, 
+rename gain and stim variables into gain_IC and stim_IC or 
+gain_AC and stim_AC respectively before running the rest of the code
+
+
+
+%}
+
+% % 
+% n_arr = 1:length(Pool);
+% c_list = {'r-','b--','r--','b-'};
+% % l_list = {'solid','dotted','dotted','solid'};
+% list_n = n_arr(list3);
+% x_axis = -2:1e-3:6;
+% x_axis = x_axis(1:end-1);
+% for n = 1:length(list_n)
+%     nn = list_n(n);
+%     figure(n)
+%     for pp = 1:4
+%         y = smoothdata(mean(rate.PSTH{nn,pp},1),"gaussian",50);
+%         plot(x_axis,y,c_list{pp},'LineWidth',2)
+%         hold on
+%     end
+%     xlim([-0.5,1.5])
+%     drawnow
+%     pause(0.1)
+% end
 
 
 %% determining gain
