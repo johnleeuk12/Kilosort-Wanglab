@@ -9,7 +9,7 @@ addpath(genpath('D:\\GitHub\npy-matlab')) % path to npy-matlab scripts
 addpath(genpath('D:\GitHub\NPMK\NPMK'))
 
 fname1 = 'continuous.dat';
-fpath_main = 'D:\DATA\Reversal Learning\TSn003\2024-10-30_13-50-34';
+fpath_main = 'D:\DATA\Reversal Learning\TSn004\2024-11-28_15-53-10';
 filepath    = fullfile(fpath_main, filesep, fname1);
 % Big_buff = [];
 % tic

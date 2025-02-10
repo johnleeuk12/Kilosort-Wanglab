@@ -11,14 +11,15 @@ addpath(genpath('D:\\GitHub\spikes')) % path to npy-matlab scripts
 
 
 
-fpath = fullfile('D:\DATA\Reversal Learning\TSn003\2024-10-30_13-50-34\probeC');
+fpath = fullfile('D:\DATA\Reversal Learning\TSn004\2024-11-28_15-53-10\probeC');
 event_id = 0;
 eventpath = 'events\OE_FPGA_Acquisition_Board-114.Rhythm Data\TTL';
 timepath = 'OE_DAQ';
 savedir = 'D:\DATA\Units\TS_2';
-animal_id = 'TSn003';
+animal_id = 'TSn004';
 region = 'V1';
-date = '2024-10-30_13-50-34';
+date = '2024-11-28_15-53-10';
+% lag =700;
 
 
 
@@ -68,9 +69,13 @@ gwfparams.wfWin = [-20 40];              % Number of samples before and after sp
 gwfparams.nWf = 2000;                    % Number of waveforms per unit to pull out
 
 wf = {};
+
+time1 =  readNPY(fullfile(fpath, filesep, 'spike_times.npy'));
+time0 = readNPY(fullfile(fpath, filesep, 'spike_times_original.npy'));
+lag = double(time0(1)-time1(1));
 for c = 1:length(sp.cgs)
     temp = [];
-    gwfparams.spikeTimes = ceil(sp.st(sp.clu==sp.cids(c))*30000); % Vector of cluster spike times (in samples) same length as .spikeClusters
+    gwfparams.spikeTimes = ceil(sp.st(sp.clu==sp.cids(c))*30000)+lag; % Vector of cluster spike times (in samples) same length as .spikeClusters
     gwfparams.spikeClusters = sp.clu(sp.clu==sp.cids(c));
     wf{c} = getWaveForms(gwfparams);
     temp(:,:) =  wf{c}.waveFormsMean(1,:,:);
@@ -79,7 +84,7 @@ for c = 1:length(sp.cgs)
 end
 
 clear gwfparams
-% % 
+% 
 % test = [];
 % 
 % test(:,:) =  wf{2}.waveFormsMean(1,:,:);
@@ -108,6 +113,9 @@ switch event_id
     case 0
         timestamps = [];
 end
+
+% test = readNPY('D:\DATA\Reversal Learning\TSn004\2024-11-28_15-53-10\probeC\spike_times.npy');
+% test2 = readNPY('D:\DATA\Reversal Learning\TSn004\2024-11-28_15-53-10\probeC\spike_times_original.npy');
 %% save units
 
 

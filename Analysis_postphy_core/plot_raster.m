@@ -14,7 +14,7 @@ else
 end
     
 
-for pp = 1:20 %length(P_list)
+for pp = 1:length(P_list)
     p = P_list(pp);
     
     
@@ -86,7 +86,9 @@ for pp = 1:20 %length(P_list)
     legend
     pause(0.1)
     sgtitle(['unit' num2str(p)])
-    
+    figname = fullfile('D:\DATA\figures',filesep, ['unit' num2str(p) '.png']);
+    saveas(f,figname)
+    close(f)
 end
 
 

@@ -21,6 +21,7 @@ end
 
 
 %% determining gain
+clear raster2 rate Lick2 Lick_rate
 [raster2, rate, Lick2, Lick_rate] = gather_raster_ephys(2, 6, Pool);
 
 list_n = 1:length(Pool);
@@ -200,15 +201,15 @@ end
 
 %%
 for r = 1:2
-    p_list{r} = (0 < gain_IC{r}.pv) & (gain_IC{r}.pv < 0.10);
-    p_list2{r} = (0 < gain_AC{r}.pv) & (gain_AC{r}.pv < 0.10);
+    p_list{r} = (0 < gain_IC{r}.pv) & (gain_IC{r}.pv < 0.05);
+    p_list2{r} = (0 < gain_AC{r}.pv) & (gain_AC{r}.pv < 0.05);
    
 end
 
 for r = 1:2
-    g_list{r} = (0.10 < gain_IC{r}.pv) | (gain_IC{r}.pv ==0);
+    g_list{r} = (0.05 < gain_IC{r}.pv) | (gain_IC{r}.pv ==0);
     g_list{r} = logical(g_list{r}.*stim_IC{r}.all);
-    g_list2{r} = (0.10 < gain_AC{r}.pv) | (gain_AC{r}.pv ==0);
+    g_list2{r} = (0.05 < gain_AC{r}.pv) | (gain_AC{r}.pv ==0);
     g_list2{r} = logical(g_list2{r}.*stim_AC{r}.all);
 end
 
@@ -335,9 +336,11 @@ end
 
 %% 
 sum((stim{1}.all+stim{2}.all)>0)
-r =1     
-[~,p ] = kstest(gain_AC{r}.all(p_list{r}))
-mean(gain_AC{r}.all(p_list{r}))
+r = 1
+median(gain_IC{r}.all(p_list{r}))
+std(gain_IC{r}.all(p_list{r}))/sqrt(sum(p_list{r}))
+
+[~,p ] = kstest(gain_AC{r}.all(p_list2{r}))
 
 
 

@@ -12,6 +12,11 @@ added to integrate this.
 For ease of use, rename all .log files into
 'YYYY-MM-DD_animal_name_region.log'
 
+2025/01/16 JHL
+Updating method to detect reward outcome: 
+- Included CS.
+- If even a single lick is detected, it's considered licking
+- Hit code output is Hit, Miss, CR and FA
 
 %}
 
@@ -101,35 +106,76 @@ for i = 1:size(deterror, 1)
     end
 end
 
+
+
 % trial results. Only take rule stage, not conditioning stage
 
-log  ={};
+% log  ={};
+% 
+% for i = 1:13
+%     for ii = 5:length(fromtxt{1})
+%     log{ii-4,i} = fromtxt{i}{ii};
+%         if i == 4
+%             log{ii-4,i} = floor(str2double(log{ii-4,i})/10);
+%         end
+%     end
+% end
+% 
+% t_ind = find([log{:,4}] == 31 | [log{:,4}] == 35 | [log{:,4}] == 41 | [log{:,4}] == 45);
+% 
+% h_ind = [log{t_ind,4}].';
+% 
+% hitcode= zeros(length(h_ind),4);
+% for tr  = 1:length(h_ind)
+%     if h_ind(tr) == 35
+%         hitcode(tr,1) = 1;
+%     elseif h_ind(tr) == 45
+%         hitcode(tr,2) = 1;
+%     elseif h_ind(tr) == 31
+%         hitcode(tr,3) = 1;
+%     elseif h_ind(tr) == 41
+%         hitcode(tr,4) = 1;
+%     end
+% end
 
-for i = 1:13
-    for ii = 5:length(fromtxt{1})
-    log{ii-4,i} = fromtxt{i}{ii};
-        if i == 4
-            log{ii-4,i} = floor(str2double(log{ii-4,i})/10);
+
+% lick detection and trial results 
+
+hitcode = zeros(length(temp_txt),4);
+outlick = zeros(length(temp_txt),1);
+rw_on = 1500; % reward period onset and offset
+rw_off = 4500;
+stim_off = 500;
+
+for tr = 1: length(temp_txt)
+    if ismember(temp_txt(tr,2), [211 212 2112 2122])
+        if sum((lick_time_ms>temp_txt(tr,1)+rw_on).*(lick_time_ms<temp_txt(tr,1)+rw_off)) > 0
+            outlick(tr,1) = 1;
+        end
+    else
+        if sum((lick_time_ms>temp_txt(tr,1)+stim_off).*(lick_time_ms<temp_txt(tr,1)+rw_on)) > 0
+            outlick(tr,1) = 1;
         end
     end
 end
-
-t_ind = find([log{:,4}] == 31 | [log{:,4}] == 35 | [log{:,4}] == 41 | [log{:,4}] == 45);
-
-h_ind = [log{t_ind,4}].';
-
-hitcode= zeros(length(h_ind),4);
-for tr  = 1:length(h_ind)
-    if h_ind(tr) == 35
-        hitcode(tr,1) = 1;
-    elseif h_ind(tr) == 45
-        hitcode(tr,2) = 1;
-    elseif h_ind(tr) == 31
-        hitcode(tr,3) = 1;
-    elseif h_ind(tr) == 41
-        hitcode(tr,4) = 1;
+        
+for tr = 1:length(temp_txt)
+    if outlick(tr,1) == 1
+        if ismember(temp_txt(tr,2), [211 2122 1211 12122])
+            hitcode(tr,1) = 1;
+        else
+            hitcode(tr,4) = 1;
+        end
+    else
+        if ismember(temp_txt(tr,2), [211 2122 1211 12122])
+            hitcode(tr,2) = 1;
+        else
+            hitcode(tr,3) = 1;
+        end
     end
 end
+        
+        
 
 
 
