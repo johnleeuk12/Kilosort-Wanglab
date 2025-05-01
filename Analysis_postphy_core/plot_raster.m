@@ -86,9 +86,9 @@ for pp = 1:length(P_list)
     legend
     pause(0.1)
     sgtitle(['unit' num2str(p)])
-    figname = fullfile('D:\DATA\figures',filesep, ['unit' num2str(p) '.png']);
+    figname = fullfile('D:\DATA\figures\IC',filesep, ['unit' num2str(p) '.png']);
     saveas(f,figname)
-    close(f)
+%     close(f)
 end
 
 

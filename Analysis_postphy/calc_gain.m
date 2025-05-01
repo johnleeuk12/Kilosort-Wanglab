@@ -1,4 +1,11 @@
- 
+
+for n = 1:length(Pool)
+%     [~,arg] = min(abs(dataset{n,3}(:,2)-dataset{n,4}(1,2)));
+    arg = dataset{n,5} + 200;
+    Pool(n).ttr = arg;
+end
+
+
 
 %{
 
@@ -40,9 +47,53 @@ gain_AC and stim_AC respectively before running the rest of the code
 
 %% determining gain
 clear raster2 rate Lick2 Lick_rate
-[raster2, rate, Lick2, Lick_rate] = gather_raster_ephys(2, 6, Pool);
+addpath('D:\GitHub\Kilosort-Wanglab\Analysis_postphy_core')
+% modify Pool
+
+for n  = 1:length(Pool)
+    for tr  = 1: length(Pool(n).xb.trial_type)
+        if tr <201
+            Pool(n).xb.trial_type(tr,5) = Pool(n).xb.trial_type(tr,4);
+        elseif tr <=460 && tr > Pool(n).ttr
+            Pool(n).xb.trial_type(tr,5) = Pool(n).xb.trial_type(tr,4);
+        elseif tr >200 && tr <= Pool(n).ttr
+            if mod(Pool(n).xb.trial_type(tr,4),2) == 1
+                Pool(n).xb.trial_type(tr,5) = 7;
+                
+            else
+                Pool(n).xb.trial_type(tr,5) = 8;
+            end
+            
+        else
+            Pool(n).xb.trial_type(tr,5) = Pool(n).xb.trial_type(tr,4);
+        end
+        if tr >Pool(n).ttr && tr <= 260
+            if mod(Pool(n).xb.trial_type(tr,4),2) == 1
+                Pool(n).xb.trial_type(tr,5) = 9;
+            else
+                Pool(n).xb.trial_type(tr,5) = 10;
+            end
+        end
+    end
+    for tr_type = 1:10
+        [~,ind] = sort(find(Pool(n).xb.trial_type(:,5)==tr_type));
+        Pool(n).xb.trial_type(find(Pool(n).xb.trial_type(:,5)==tr_type),6) = ind;
+    end
+    
+end
+       
+            
+
+% [raster2, rate, Lick2, Lick_rate] = gather_raster_ephys(2, 6, Pool);
+
+[raster2, rate, Lick2, Lick_rate] = gather_raster_ephys2(2, 6, Pool);
+
+
+%%
 
 list_n = 1:length(Pool);
+% list_n = [1:102,126:179];
+% list_n = list_n([Pool(:).ttr] > 206);
 gain = {};
 stim = {};
 supp = {};
@@ -56,7 +107,7 @@ for r = 1:2
     gain{r}.pv =  zeros(1,length(list_n));
     supp{r}.sus =  zeros(1,length(list_n));
 end
-alpha = 2;
+alpha = 1;
 for n = 1:length(list_n)
     nn = list_n(n);
     for r = 1:2 % 5 or 10 kHz, analysed separately
@@ -102,8 +153,10 @@ for n = 1:length(list_n)
             bootstat2 = bootstrp(100,@mean,d2);
             [~,p] = kstest2(bootstat,bootstat2);
             if p < 0.01
-                if stim{r}.onset(n) == 1
-                    supp{r}.sus(n) = 1;
+                if stim{r}.onset(n) == 0
+                    if mean(y_go(2100:2450)) < mean(y_go(500:1500)) - 2*std(y_go(500:1500))
+                        supp{r}.sus(n) = 1;
+                    end
                 end
             end
         elseif (mean(y_ng(2100:2450)) < mean(y_ng(500:1500)))
@@ -113,8 +166,10 @@ for n = 1:length(list_n)
             bootstat2 = bootstrp(100,@mean,d2);
             [~,p] = kstest2(bootstat,bootstat2);
             if p < 0.01
-                if stim{r}.onset(n) == 1
-                    supp{r}.sus(n) = 1;
+                if stim{r}.onset(n) == 0
+                    if mean(y_ng(2100:2450)) < mean(y_ng(500:1500)) - 2*std(y_ng(500:1500))
+                        supp{r}.sus(n) = 1;
+                    end
                 end
             end
         end
@@ -184,7 +239,127 @@ end
 for r = 1:2
     stim{r}.all = ((stim{r}.onset + stim{r}.sus)>0);
 end
-    
+
+supp_all = (supp{1}.sus | supp{2}.sus);
+sum(supp_all& not(stim{1}.all|stim{2}.all))
+
+%% 
+addpath('D:\GitHub\Kilosort-Wanglab\Analysis_postphy\Violinplot-Matlab-master');
+
+for r = 1:2
+    p_list{r} = (0 < gain{r}.pv) & (gain{r}.pv < 0.05);
+   
+end
+
+for r = 1:2
+    g_list{r} = (0.05 < gain{r}.pv) | (gain{r}.pv ==0);
+    g_list{r} = logical(g_list{r}.*stim{r}.all);
+
+end
+
+vd = [gain{1}.all( p_list{1}),gain{2}.all( p_list{2})];
+vc = [ones(sum(p_list{1}),1)*2;ones(sum(p_list{2}),1)*1];
+vc = vc.';
+
+vd2 = [gain{1}.all( g_list{1}),gain{2}.all( g_list{2})];
+vc2 = [ones(sum(g_list{1}),1)*2;ones(sum(g_list{2}),1)*1];
+vc2 = vc2.';
+
+
+color = {[0,0,1],[1,0,1],[0,0,1],[1,0,1]};
+figure
+% vs2 = violinplot(vd2,vc2,'Orientation', 'horizontal','ViolinColor',[0,0,0]);
+hold on
+vs1 = violinplot(vd,vc,'Orientation', 'horizontal','ViolinColor' ,[[1,0,1];[0,0,1]] );
+hold off
+% vs1(1,1).ScatterPlot.MarkerFaceColor = [1,1,1];
+
+xlim([-1.2,1.2])
+
+
+sum((stim{1}.all+stim{2}.all)>0)
+r = 1
+median(gain{r}.all(p_list{r}))
+std(gain{r}.all(p_list{r}))/sqrt(sum(p_list{r}))
+
+[~,p ] = kstest(gain{r}.all(p_list{r}))
+
+
+
+%% gather gain
+
+gain_all = {};
+gain_all{1}{1} = gain;
+gain_all{1}{2} = p_list;
+
+%% comparing RT and R2 
+% sum(gain_all{1}{2}{1}.*gain_all{1}{2}{2})
+
+gain_total = zeros(4,length(Pool));
+gain_total(1,:) = gain_all{1}{1}{1}.all;
+gain_total(2,:) = gain_all{1}{1}{2}.all;
+gain_total(3,:) = gain_all{2}{1}{1}.all;
+gain_total(4,:) = gain_all{2}{1}{2}.all;
+
+p_list_total = zeros(8,length(Pool));
+p_list_total(1,:) = gain_all{1}{2}{1};
+p_list_total(2,:) = gain_all{1}{2}{2};
+p_list_total(3,:) = gain_all{2}{2}{1};
+p_list_total(4,:) = gain_all{2}{2}{2};
+p_list_total(5,:) = (p_list_total(1,:) | p_list_total(3,:));
+p_list_total(6,:) = (p_list_total(2,:) | p_list_total(4,:));
+p_list_total(7,:) = (p_list_total(1,:) & not(p_list_total(3,:)));
+p_list_total(8,:) = (p_list_total(2,:) & not(p_list_total(4,:)));
+p_list_total = logical(p_list_total);
+
+
+%% Code comparing AC and IC
+vd = [gain_total(2,p_list_total(4,:)),gain_total(4,p_list_total(4,:))];
+vc = [ones(sum(p_list_total(4,:)),1)*1;ones(sum(p_list_total(4,:)),1)*2];
+vc = vc.';
+figure
+vs1 = violinplot(vd,vc,'Orientation', 'horizontal','ViolinColor' ,[1,0,1], ...
+                'ShowData', true,'Orientation','vertical' );
+% hold on
+% scatter(vc,vd)
+% for sc = 1:length(vd)/2
+%     plot([1,2],[vd(sc),vd(sc+length(vd)/2)])
+% end
+ylim([-1,1.0])
+figure
+boxplot(vd,vc)
+hold on 
+scatter(vc,vd)
+for sc = 1:length(vd)/2
+    plot([1,2],[vd(sc),vd(sc+length(vd)/2)])
+end
+ylim([-1,1.0])
+
+grp1 = gain_total(2,p_list_total(4,:));
+grp2 = gain_total(4,p_list_total(4,:));
+
+signrank(grp1,grp2)
+[~,p] = ttest(grp1,grp2)
+
+median(grp1)
+std(grp1)/sqrt(length(grp1))
+
+[~,p ] = kstest(grp1)
+
+figure
+vd = [gain_total(2,p_list_total(8,:)),gain_total(4,p_list_total(8,:))];
+vc = [ones(sum(p_list_total(8,:)),1)*1;ones(sum(p_list_total(8,:)),1)*2];
+vc = vc.';
+% vs1 = violinplot(vd,vc,'Orientation', 'horizontal','ViolinColor' ,[1,0,1],'ShowData', false );
+boxplot(vd,vc)
+hold on
+scatter(vc,vd)
+ylim([-1,1.5])
+
+mean(gain_total(4,p_list_total(8,:)))
+std(gain_total(4,p_list_total(8,:)))/length(gain_total(4,p_list_total(8,:)))
+
+[~,p ] = kstest(gain_total(4,p_list_total(8,:)))
 
 %%
 % 
@@ -218,6 +393,7 @@ end
 %     
 
 %%
+
 for r = 1:2
     p_list{r} = (0 < gain_IC{r}.pv) & (gain_IC{r}.pv < 0.05);
     p_list2{r} = (0 < gain_AC{r}.pv) & (gain_AC{r}.pv < 0.05);

@@ -49,7 +49,8 @@ for i = 1:length(u_list)
     
 
     Pool(i).neuron_nb = u_list(i);
-    Pool(i).best_ch = x.s_unit.best_ch;
+%     Pool(i).best_ch = x.s_unit.best_ch;
+    Pool(i).best_ch = find_best_waveform(x);
     Pool(i).waveforms(:,:) = x.s_unit.waveforms.waveForms(1,:,Pool(i).best_ch,:);
     %extract spiketimes and other information
     Pool(i).spiketimes = x.s_unit.spiketimes;

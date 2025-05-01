@@ -27,6 +27,13 @@ end
 
 save(fullfile('D:\DATA',filesep,[name,'.mat']),"GLM_dataset")
 
+
+
+
+
+
+
+
 % 
 % sz = length(GLM_dataset);
 % for p = 1:length(Pool)
