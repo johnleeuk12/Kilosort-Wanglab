@@ -173,7 +173,14 @@ for n = 1:length(list_n)
             p = spk_ttest2(d,d2);
             gain{r}.pv(n) = p;
         end
-        
+        if stim{r}.supp(n) ==1
+            d = (mean(raw_go(:,2100:2450),2)-mean(y_go(500:1500)));
+            d2 = (mean(raw_ng(:,2100:2450),2)-mean(y_ng(500:1500)));
+            d  = d + 2*max(mean(y_go(500:1500)),mean(y_ng(500:1500)));
+            d2 = d2 + 2*max(mean(y_go(500:1500)),mean(y_ng(500:1500)));
+            p = spk_ttest2(d,d2);
+            gain{r}.pv_supp(n) = p;
+        end
     end
 end
 

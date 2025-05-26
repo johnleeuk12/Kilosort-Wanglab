@@ -1,5 +1,5 @@
 
-function [raster2, rate, Lick2, Lick_rate] = gather_raster_ephys(PreStim, PostStim, Pool)
+function [raster2, rate, Lick2, Lick_rate] = gather_raster_ephys(PreStim, PostStim, Pool,list_n)
 
 %{
 from variable Pool, gather spk data in raster and rate format.
@@ -38,9 +38,12 @@ Lick_rate.PSTH = {};
 raster2 ={};
 Lick2 = {};
 
-
+if isempty(list_n)
+    list_n = 1:length(Pool);
+end
 tic
-for p = 1:length(Pool)
+for pp = 1:length(list_n)
+    p = list_n(pp);
     
     if mod(p,10) ==1
         fprintf(['%4d /' num2str(length(Pool)) ' time : %6.2f sec \n'],p,toc')

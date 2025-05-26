@@ -1,7 +1,7 @@
-function [gain,stim,rate,raster2] = ana_gain(Pool,rule,sd,sd2)
+function [gain,stim,rate,raster2] = ana_gain(Pool,rule,sd,sd2,list_n)
 addpath('D:\GitHub\Kilosort-Wanglab\Analysis_postphy_core')
 clear raster2 rate Lick2 Lick_rate
-[raster2, rate, Lick2, Lick_rate] = gather_raster_ephys(2, 6, Pool);
+[raster2, rate, Lick2, Lick_rate] = gather_raster_ephys(2, 6, Pool,list_n);
 
 % plot_raster(Pool, raster2, rate, Lick2, Lick_rate,[20:30])
 if rule == 2
@@ -12,7 +12,9 @@ elseif rule ==3
     r_ind10 = 8;
 end
 
-list_n = 1:length(Pool);
+if isempty(list_n)
+    list_n = 1:length(Pool);
+end
 gain = {};
 stim = {};
 supp = {};

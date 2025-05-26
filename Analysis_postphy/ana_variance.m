@@ -4,9 +4,10 @@
 gain ={};
 stim = {};
 
+clearvars -except Pool;
 
 
-[gain{2},stim{2},rate,raster2] = ana_gain(Pool,2);
+[gain{2},stim{2},rate,raster2] = ana_gain(Pool,2,1,0.5);
 % [raster2, rate, Lick2, Lick_rate] = gather_raster_ephys(2, 6, Pool);
 
 % for each unit in stim, calculate variance within R1, RT and R2
@@ -20,8 +21,8 @@ gain_list = find(gain{r_ind}{s_ind}.pv >0);
 V = zeros(3,length(Pool));
 M = zeros(3,length(Pool));
 
-t1 = 1;
-t2 = 1500;
+t1 = 2000;
+t2 = 2500;
 for n = stim_list
     if s_ind ==2
         V(1,n) = std(mean((rate.PSTH{n,2}(:,t1:t2)),2))^2;
@@ -70,9 +71,9 @@ figure
 boxplot(F.')
 ylim([0.5,10])
 % [T,p] = kstest(F(3,:)-F(2,:))
-[T,p] = kstest2(F(1,:),F(2,:))
-[T,p] = kstest2(F(3,:),F(2,:))
-[T,p] = kstest2(F(3,:),F(1,:))
+[p,T] = signrank(F(1,:),F(2,:))
+[p,T] = signrank(F(3,:),F(2,:))
+[p,T] = signrank(F(3,:),F(1,:))
 
 
 % figure

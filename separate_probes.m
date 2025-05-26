@@ -16,6 +16,7 @@ filepath    = fullfile(fpath_main, filesep, fname1);
 
 % intializing parameters
 NchanTOT = 64*3;
+Nchan = 64;
 ntbuff = 64;
 NT= 32*1024 + ntbuff;
 NTbiff = NT; %+ 3*ntbuff; 
@@ -31,12 +32,15 @@ fpath.B = fullfile(fpath_main,filesep,'probeB');
 if ~exist(fpath.B, 'dir'); mkdir(fpath.B); end
 fpath.C = fullfile(fpath_main,filesep,'probeC');
 if ~exist(fpath.C, 'dir'); mkdir(fpath.C); end
+fpath.L = fullfile(fpath_main,filesep,'lick');
+if ~exist(fpath.L, 'dir'); mkdir(fpath.L); end
 
 
 fid = fopen(filepath,'r');
 fidA = fopen(fullfile(fpath.A,filesep,fname1),'w');
 fidB = fopen(fullfile(fpath.B,filesep,fname1),'w');
 fidC = fopen(fullfile(fpath.C,filesep,fname1),'w');
+fidL = fopen(fullfile(fpath.L,filesep,fname1),'w');
 
 fprintf('Time %3.0fs. Loading raw data and separating to individual probes... \n', toc);
 
@@ -46,10 +50,11 @@ for ibatch = 1:Nbatch
     offset = 2*NchanTOT*NTbiff*(ibatch-1);
     fseek(fid, offset, 'bof'); % fseek to batch start in raw file
     buff = fread(fid, [NchanTOT NTbiff], '*int16');
-    fwrite(fidA,buff(1:64,:),'*int16');
-    fwrite(fidB,buff(65:64*2,:),'*int16');
-    fwrite(fidC,buff(129:64*3,:),'*int16');
+    fwrite(fidA,buff(1:Nchan,:),'*int16');
+    fwrite(fidB,buff(Nchan+1:Nchan*2,:),'*int16');
+    fwrite(fidC,buff(Nchan*2+1:Nchan*3,:),'*int16');
+    fwrite(fidL,buff(Nchan*3+1,:),'*int16');
 end
 
-fclose(fid); fclose(fidA); fclose(fidB); fclose(fidC);
+fclose(fid); fclose(fidA); fclose(fidB); fclose(fidC); fclose(fidL);
 fprintf('Time %3.0fs. Finished separating to individual probes... \n', toc);

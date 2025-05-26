@@ -1,10 +1,51 @@
 
 
-% [gain_rt, stim_rt,~,~] = ana_gain(Pool,3);
+% [gain_rt, stim_rt,~,~] = ana_gain(Pool,3)
 
-[gain_r2, stim_r2,rate,~] = ana_gain(Pool,2,1,0.5);
+clearvars -except Pool;
+
+region = 'PPC';
+list_r1 = load(['D:\DATA\listTV3_',region,'_R1.mat']);
+list_r2 = load(['D:\DATA\listTV3_',region,'_R2.mat']);
+list_rt = load(['D:\DATA\listTV3_',region,'_RT.mat']);
+list_n = [list_r1.five, list_r2.five, list_rt.five, ...
+    list_r1.ten, list_r2.ten, list_rt.ten];
+
+
+list_np = {};
+temp = load(['D:\DATA\listTV3_',region,'_R1p.mat']);
+list_np{1,1} = temp.five+1;
+list_np{1,2} = temp.ten+1;
+temp = load(['D:\DATA\listTV3_',region,'_R2p.mat']);
+list_np{2,1} = temp.five+1;
+list_np{2,2} = temp.ten+1;
+temp = load(['D:\DATA\listTV3_',region,'_RTp.mat']);
+list_np{3,1} = temp.five+1;
+list_np{3,2} = temp.ten+1;
+
+list_nn = {};
+temp = load(['D:\DATA\listTV3_',region,'_R1n.mat']);
+list_nn{1,1} = temp.five+1;
+list_nn{1,2} = temp.ten+1;
+temp = load(['D:\DATA\listTV3_',region,'_R2n.mat']);
+list_nn{2,1} = temp.five+1;
+list_nn{2,2} = temp.ten+1;
+temp = load(['D:\DATA\listTV3_',region,'_RTn.mat']);
+list_nn{3,1} = temp.five+1;
+list_nn{3,2} = temp.ten+1;
+
+
+
+
+list_n = unique(list_n)+1;
+%% 
+% [gain_r2, stim_r2,~,~] = ana_gain(Pool,2,1,0.5,list_n);
+% [gain_rt, stim_rt,~,~] = ana_gain(Pool,3,1,0.5,list_n);
+ 
+[gain_r2, stim_r2,~,~] = ana_gain3(Pool,2,1,0.5,list_n,list_np,list_nn);
+[gain_rt, stim_rt,~,~] = ana_gain3(Pool,3,1,0.5,list_n,list_np,list_nn);
 gain_r2{1}.all = -gain_r2{1}.all;
-
+gain_rt{1}.all = -gain_rt{1}.all;
 %%
 gain_all ={};
 
@@ -14,13 +55,14 @@ gain_all ={};
 p_list_c = {};
 for r = 1:2
     p_list_r2{r} = logical(stim_r2{r}.all.*((0 < gain_r2{r}.pv) & (gain_r2{r}.pv < 0.05)));
+    p_list_rt{r} = logical(stim_rt{r}.all.*((0 < gain_rt{r}.pv) & (gain_rt{r}.pv < 0.05)));
 %     p_list_rt{r} = (0 < gain_rt{r}.pv) & (gain_rt{r}.pv < 0.05);
     p_list_supp{r}= logical(stim_r2{r}.supp.*((0 < gain_r2{r}.pv_supp) & (gain_r2{r}.pv_supp< 0.05)));
     
-    p_list_c{r} =((p_list_r2{r})); % | (p_list_r2{r}));
+    p_list_c{r} =((p_list_r2{r}) | (p_list_r2{r}));
     
-%     gain_all{r} = [gain_r2{r}.all(p_list_c{r});gain_rt{r}.all(p_list_c{r})];
-%     gain_all{r} = [gain_all{r};zeros(1,length(gain_all{r}))];
+    gain_all{r} = [gain_r2{r}.all(p_list_c{r});gain_rt{r}.all(p_list_c{r})];
+    gain_all{r} = [gain_all{r};zeros(1,length(gain_all{r}))];
     n_list{r} = find(p_list_c{r}==1);
 end
 
@@ -35,24 +77,31 @@ addpath('D:\GitHub\Kilosort-Wanglab\Analysis_postphy\Violinplot-Matlab-master');
 
 for r = 1:2
     figure('Position',[100 100 500 500])
-    edges = -1.3:0.1:1.3;
-    
+%     edges = -1.3:0.1:1.3;
+    edges = -2.0:0.1:2.0;
+
 %     histogram(gain_r2{r}.all(logical(not(p_list_r2{r}).*stim_r2{r}.all)),edges,'facecolor','k')
     subplot(2,1,1)
     histogram(gain_r2{r}.all(stim_r2{r}.all),edges,'facecolor','k')
+%     histogram(gain_rt{r}.all(stim_rt{r}.all),edges,'facecolor','k')
     hold on
     histogram(gain_r2{r}.all(p_list_r2{r}),edges,'facecolor',"g")
-    
+%     histogram(gain_rt{r}.all(p_list_rt{r}),edges,'facecolor',"g")
     xline(mean(gain_r2{r}.all(stim_r2{r}.all)),'-r')
     xline(median(gain_r2{r}.all(stim_r2{r}.all)),'--r')
+%     xline(mean(gain_rt{r}.all(stim_r2{r}.all)),'-r')
+%     xline(median(gain_rt{r}.all(stim_rt{r}.all)),'--r')
     hold off
-    ylim([0,15])
+    ylim([0,10])
     [p,~]= signrank(gain_r2{r}.all(p_list_r2{r} ==1 ));
-    [p,~]= signrank(gain_r2{r}.all(stim_r2{r}.all ==1 ));
+%     [p,~]= signrank(gain_rt{r}.all(p_list_rt{r} ==1 ));
+%     [p,~]= signrank(gain_r2{r}.all(stim_r2{r}.all ==1 ));
     title(['p = ',num2str(p,3)])
 %     title([num2str(mean(gain_r2{r}.all(stim_r2{r}.all)),4),"   ",num2str(mean(gain_r2{r}.all(p_list_r2{r})),4)])
+    
+    % suppression
     subplot(2,1,2)
-    edges = -1.3:0.1:1.3;
+    edges = -2.0:0.1:2.0;
     histogram(gain_r2{r}.supp(logical(stim_r2{r}.supp) & abs(gain_r2{r}.supp)<1.5),edges,'facecolor','k')
     hold on
     histogram(gain_r2{r}.supp(p_list_supp{r}),edges,'facecolor',"g")
@@ -65,10 +114,10 @@ for r = 1:2
 %     histogram(gain_rt{r}.all(p_list_rt{r}),edges,'facecolor',"#D95319")
 %     hold on
 %     histogram(gain_rt{r}.all(logical(not(p_list_rt{r}).*stim_rt{r}.all)),edges,'facecolor','k')
-    [p,~]= signrank(gain_r2{r}.supp(logical(stim_r2{r}.supp)&abs(gain_r2{r}.all)<1.5));
-%     [p,~]= signrank(gain_r2{r}.supp(p_list_supp{r} == 1));
+%     [p,~]= signrank(gain_r2{r}.supp(logical(stim_r2{r}.supp)&abs(gain_r2{r}.all)<1.5));
+    [p,~]= signrank(gain_r2{r}.supp(p_list_supp{r} == 1));
     title(['p = ',num2str(p,3)])
-    ylim([0,15])
+    ylim([0,10])
     end
 %     title(num2str(mean(gain_rt{r}.all(p_list_rt{r}))))
 end
@@ -77,7 +126,7 @@ end
 % mean(gain_r2{r}.all(stim_r2{r}.all))
 % 
 r = 1;
-% [p,~]= signrank(gain_r2{r}.all(stim_r2{r}.all))
+[T,p]= ranksum(gain_r2{r}.all(p_list_r2{r} ==1),gain_rt{r}.all(p_list_rt{r} ==1) )
 % [p,~]= signrank(gain_r2{r}.all(logical(stim_r2{r}.supp)&abs(gain_r2{r}.all)<1.5))
 % [p,~,stats]= signrank(gain_r2{r}.supp(stim_r2{r}.supp ==1))
 
@@ -93,6 +142,15 @@ r = 1;
 %     title(num2str(mean(gain_r2{r}.supp(stim_r2{r}.supp ==1)),3))
 %     ylim([0,15])
 % end
+%% calculate nb of units encoding stim
+
+five = unique([list_r1.five, list_r2.five, list_rt.five]);
+ten = unique([list_r1.ten, list_r2.ten, list_rt.ten]);
+
+
+
+
+
 %%
 % pgain = ana_pregain(rate,Pool);
 % gain_r2{1}.all = -gain_r2{1}.all;
@@ -158,9 +216,9 @@ for r= 1:2
 end
 
 %%
-violinplot([gain_all{r}(1,:),gain_all{r}(2,:)],[ones(1,length(gain_all{r})),ones(1,length(gain_all{r}))*2], ...
-    'Orientation', 'vertical','ViolinColor' ,cmap{r},'ShowMean',true );
-ylim([-1.4,1.4])
+% violinplot([gain_all{r}(1,:),gain_all{r}(2,:)],[ones(1,length(gain_all{r})),ones(1,length(gain_all{r}))*2], ...
+%     'Orientation', 'vertical','ViolinColor' ,cmap{r},'ShowMean',true );
+% ylim([-1.4,1.4])
 
 
 
@@ -175,21 +233,21 @@ ylim([-1.4,1.4])
 test = [];
 for r = 1:2
     figure
-    boxplot([gain_all{r}(1,:),gain_all{r}(2,:)],[ones(1,length(gain_all{r})),ones(1,length(gain_all{r}))*2])
+    boxplot([gain_all{r}(2,:),gain_all{r}(1,:)],[ones(1,length(gain_all{r})),ones(1,length(gain_all{r}))*2])
     hold on
     
     for n = 1:length(gain_all{r})
 %         if ttr_list(n_list{r}(n)) == gr
             if gain_all{r}(1,n) > 0
-                plot([2;1],gain_all{r}(:,n),'-b') %'Color',c(n_list{r}(n),:))
+                plot([2;1],gain_all{r}([1:2],n),'-b') %'Color',c(n_list{r}(n),:))
                 
 %                 test = [test;[gain_all{r}(2,n),Pool(n_list{r}(n)).ttr]];
             elseif gain_all{r}(1,n) < 0
-                plot([2;1],gain_all{r}(:,n),'-r') %'Color',c(n_list{r}(n),:),'LineStyle','--')
+                plot([2;1],gain_all{r}([1:2],n),'-r') %'Color',c(n_list{r}(n),:),'LineStyle','--')
             end
 %         end
     end
-    ylim([-1.0,1.3])
+    ylim([-2.0,2.0])
 %     colormap(parula(70))
 %     colorbar
 end
@@ -205,16 +263,16 @@ end
 % title(mdl.Rsquared.Adjusted)
 
 
+r=1;
+test1 = gain_all{r}(1,(gain_all{r}(1,:) < 0));
+test2 = gain_all{r}(2,(gain_all{r}(1,:) < 0));
 
-r=2;
-test1 = gain_all{r}(1,(gain_all{r}(1,:) > 0));
-test2 = gain_all{r}(2,(gain_all{r}(1,:) > 0));
 
+% test1 = gain_r2{r}.all(p_list_r2{r});
+% test2 = gain_rt{r}.all(p_list_rt{r});
 
-test1 = gain_r2{r}.all(p_list_r2{r});
-test2 = gain_rt{r}.all(p_list_rt{r});
+[p, S] = signrank(test1,test2)
 
-[stats, p] = kstest2(test1,test2)
 
 
 %%
