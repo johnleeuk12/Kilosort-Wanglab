@@ -1,5 +1,5 @@
 clear; clc; close all;
-load('D:\DATA\listTV3_PPC_RT.mat')
+load('D:\DATA\listTV3_PPC_R2.mat')
 target = 'PPC';
 
 data = {};
@@ -10,7 +10,7 @@ data{4} = hit.';
 data{5} = fa.';
 data{6} = cr.';
 data{7} = []; %miss.';
-data{8} = rew.';
+% data{8} = rew.';
 
 
 
@@ -28,7 +28,7 @@ clearvars -except feature_matrix target
 
 
 %%
-tv_label = {'lick', 'five', 'ten', 'Hit', 'FA', 'CR', 'miss','Reward'};
+tv_label = {'lick', 'five', 'ten', 'Hit', 'FA', 'CR', 'miss'};
 num_tv = size(tv_label,2);
 
 clear idx

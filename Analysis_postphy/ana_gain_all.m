@@ -4,7 +4,7 @@
 
 clearvars -except Pool;
 
-region = 'PPC';
+region = 'OFC';
 list_r1 = load(['D:\DATA\listTV3_',region,'_R1.mat']);
 list_r2 = load(['D:\DATA\listTV3_',region,'_R2.mat']);
 list_rt = load(['D:\DATA\listTV3_',region,'_RT.mat']);
@@ -49,7 +49,8 @@ gain_rt{1}.all = -gain_rt{1}.all;
 %%
 gain_all ={};
 
-
+% gain_r2 = gain_rt;
+% stim_r2 = stim_rt;
 
 % n_list  ={};
 p_list_c = {};
@@ -73,6 +74,8 @@ end
 r= 1;
 cmap = {[0,0,1],[1,0,1]};
 addpath('D:\GitHub\Kilosort-Wanglab\Analysis_postphy\Violinplot-Matlab-master');
+
+
 
 
 for r = 1:2
@@ -122,15 +125,58 @@ for r = 1:2
 %     title(num2str(mean(gain_rt{r}.all(p_list_rt{r}))))
 end
 
-
+% for r = 1:2
 % mean(gain_r2{r}.all(stim_r2{r}.all))
+% median(gain_r2{r}.all(stim_r2{r}.all))
+% end
 % 
 r = 1;
 [T,p]= ranksum(gain_r2{r}.all(p_list_r2{r} ==1),gain_rt{r}.all(p_list_rt{r} ==1) )
 % [p,~]= signrank(gain_r2{r}.all(logical(stim_r2{r}.supp)&abs(gain_r2{r}.all)<1.5))
 % [p,~,stats]= signrank(gain_r2{r}.supp(stim_r2{r}.supp ==1))
+%% calculate nb of units encoding stim
 
+five = unique([list_r1.five, list_r2.five, list_rt.five]);
+ten = unique([list_r1.ten, list_r2.ten, list_rt.ten]);
 
+%%
+
+gain_all2 = {};
+for r = 1:2
+    temp1 = gain_r2{r}.supp(logical(stim_r2{r}.supp) & abs(gain_r2{r}.supp)<1.5);
+    temp2 = gain_r2{r}.all(stim_r2{r}.all);
+    gain_all2{r}.all = [temp1,temp2];
+    temp1 = gain_r2{r}.supp(p_list_supp{r});
+    temp2 = gain_r2{r}.all(p_list_r2{r});
+    gain_all2{r}.sig = [temp1,temp2];
+end
+figure('Position',[100 100 1000 200])
+for r = 1:2
+    %     edges = -1.3:0.1:1.3;
+    edges = -2.0:0.1:2.0;
+    subplot(1,2,r)
+        histogram(gain_all2{r}.all,edges,'facecolor',[0.75,0.75,0.75])
+%     [count_all,edges] = histcounts(gain_all2{r}.all,edges);
+%     bar(edges(1:end-1),count_all/length(unique([five,ten])),...
+%         'facecolor',[0.75,0.75,0.75], 'BarWidth', 1)
+    hold on
+    ind = find(abs(gain_all2{r}.sig)<2.0);
+    %
+        histogram(gain_all2{r}.sig(ind),edges,'facecolor',"g")
+%     [count_sig,edges] = histcounts(gain_all2{r}.sig(ind),edges);
+%     bar(edges(1:end-1),count_sig/length(unique([five,ten])),...
+%         'facecolor',"g", 'BarWidth', 1)
+    
+    xline(mean(gain_all2{r}.sig(ind)),'-r')
+    xline(median(gain_all2{r}.sig(ind)),'--r')
+    hold off
+    ylim([0,15])
+    xlim([-1.5,1.5])
+    [p,~]= signrank(gain_all2{r}.sig(ind));
+    title(['p = ',num2str(p,3)])
+end
+
+% save('gain_OFC2.mat','gain_all2');
 
 
 % for r= 1:2
@@ -142,14 +188,8 @@ r = 1;
 %     title(num2str(mean(gain_r2{r}.supp(stim_r2{r}.supp ==1)),3))
 %     ylim([0,15])
 % end
-%% calculate nb of units encoding stim
 
-five = unique([list_r1.five, list_r2.five, list_rt.five]);
-ten = unique([list_r1.ten, list_r2.ten, list_rt.ten]);
-
-
-
-
+% save('gain_AC.mat','gain_r2','p_list_r2','p_list_supp');
 
 %%
 % pgain = ana_pregain(rate,Pool);
@@ -185,14 +225,116 @@ end
 % sum((gain_all2{1} ~=0) | (gain_all2{2} ~=0))
 %%
 r =2
-sum(stim_r2{1}.all) %.*stim_r2{2}.all)
-sum(stim_r2{2}.all)
-sum(stim_r2{1}.all.*stim_r2{2}.all)
+% sum(stim_r2{1}.all) %.*stim_r2{2}.all)
+% sum(stim_r2{2}.all)
+% sum(stim_r2{1}.all.*stim_r2{2}.all)
+for r = 1:2
+    sum(stim_r2{r}.all)
+    sum(p_list_r2{r})
+    sum(stim_r2{r}.supp)
+    sum(p_list_supp{r})
+end
 
-sum(stim_r2{1}.supp) %.*stim_r2{2}.all)
-sum(stim_r2{2}.supp)
-sum(stim_r2{1}.supp.*stim_r2{2}.supp)
 
+% sum(stim_r2{1}.supp) %.*stim_r2{2}.all)
+% sum(stim_r2{2}.supp)
+% sum(stim_r2{1}.supp.*stim_r2{2}.supp)
+
+
+%% 07/01/2025 Comparing gain modulation across regions
+gn = {};
+gn{1} = load('gain_IC2.mat');
+gn{2} = load('gain_AC2.mat');
+gn{3} = load('gain_PPC2.mat');
+gn{4} = load('gain_OFC2.mat');
+
+
+gn_ex = [];
+grp = [];
+for r = 1:2
+    for id = 1:4    
+        gn_ex = cat(2,gn_ex,gn{id}.gain_all2{r}.sig);
+        grp = cat(2,grp,id*ones(1,length(gn{id}.gain_all2{r}.sig)));
+    end
+    
+    ind = find(abs(gn_ex)<2);
+    
+    figure(r)
+    boxchart(grp(ind),gn_ex(ind))
+    hold on
+    swarmchart(grp(ind),gn_ex(ind),10)
+    ylim([-2,2])
+    hold off
+end
+
+
+for id = 1:4
+    figure('Position',[100 100 300 600])
+    gn_ex = cat(2,-gn{id}.gain_all2{1}.sig,gn{id}.gain_all2{2}.sig);
+    grp = cat(2,ones(1,length(gn{id}.gain_all2{1}.sig)),2*ones(1,length(gn{id}.gain_all2{2}.sig)));
+    ind = find(abs(gn_ex)<2);
+    boxchart(grp(ind),gn_ex(ind))
+    hold on
+    swarmchart(grp(ind),gn_ex(ind),10)
+    ylim([-2,2])
+    hold off
+end
+    
+
+%% 
+gain_all2 = gn{4}.gain_all2;
+figure('Position',[100 100 1000 200])
+for r = 1:2
+    %     edges = -1.3:0.1:1.3;
+    edges = -2.0:0.1:2.0;
+    subplot(1,2,r)
+        histogram(gain_all2{r}.all,edges,'facecolor',[0.75,0.75,0.75])
+%     [count_all,edges] = histcounts(gain_all2{r}.all,edges);
+%     bar(edges(1:end-1),count_all/length(unique([five,ten])),...
+%         'facecolor',[0.75,0.75,0.75], 'BarWidth', 1)
+    hold on
+    ind = find(abs(gain_all2{r}.sig)<2.0);
+    %
+        histogram(gain_all2{r}.sig(ind),edges,'facecolor',"g")
+%     [count_sig,edges] = histcounts(gain_all2{r}.sig(ind),edges);
+%     bar(edges(1:end-1),count_sig/length(unique([five,ten])),...
+%         'facecolor',"g", 'BarWidth', 1)
+    
+    xline(mean(gain_all2{r}.sig(ind)),'-r')
+    xline(median(gain_all2{r}.sig(ind)),'--r')
+    hold off
+    ylim([0,15])
+    xlim([-1.5,1.5])
+    [p,~]= signrank(gain_all2{r}.sig(ind));
+    title(['p = ',num2str(p,3)])
+end
+
+
+%% 07/01/2025 Comparing gain modulation across regions
+gn = {};
+gn{1} = load('gain_IC.mat');
+gn{2} = load('gain_AC.mat');
+gn{3} = load('gain_PPC.mat');
+gn{4} = load('gain_OFC.mat');
+
+
+gn_ex = [];
+grp = [];
+for r = 1:2
+    for id = 1:4    
+        gn_ex = cat(2,gn_ex,gn{id}.gain_r2{r}.all(gn{id}.p_list_r2{r}));
+        grp = cat(2,grp,id*ones(1,length(gn{id}.gain_r2{r}.all(gn{id}.p_list_r2{r}))));
+    end
+    figure(r)
+    boxchart(grp,gn_ex)
+    hold on
+    swarmchart(grp,gn_ex)
+end
+    
+
+
+
+%%
 
 
 [gain_r2, stim_r2,rate,~] = ana_gain2(Pool,2,2);

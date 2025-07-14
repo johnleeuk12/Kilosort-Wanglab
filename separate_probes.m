@@ -1,5 +1,18 @@
 function separate_probes()
 
+%{
+EDIT 2025-07-14 JHL
+This code serves to separate the single DAT/continous file from OpenEphys 
+recordings into separate probe-tied datasets for Kilsort and subsequent
+spike-sorting. make sure to have at least 2 times the disk-space equivalent
+to the size of the recording file. 
+
+
+
+
+%} 
+
+
 
 tic
 addpath(genpath('D:\GitHub\Kilosort2')) % path to kilosort folder
@@ -9,15 +22,16 @@ addpath(genpath('D:\\GitHub\npy-matlab')) % path to npy-matlab scripts
 addpath(genpath('D:\GitHub\NPMK\NPMK'))
 
 fname1 = 'continuous.dat';
-fpath_main = 'D:\DATA\Reversal Learning\TSn004\2024-11-28_15-53-10';
+fpath_main = 'D:\DATA\Reversal Learning\MPM04\concat_0529';
 filepath    = fullfile(fpath_main, filesep, fname1);
 % Big_buff = [];
 % tic
 
 % intializing parameters
-NchanTOT = 64*3;
+NchanTOT = 64*3+8; % total number of channels, including analog
 Nchan = 64;
-ntbuff = 64;
+
+ntbuff = 64; 
 NT= 32*1024 + ntbuff;
 NTbiff = NT; %+ 3*ntbuff; 
 bytes       = get_file_size(filepath); % size in bytes of raw binary

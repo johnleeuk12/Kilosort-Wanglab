@@ -78,7 +78,7 @@ ops.minfr_goodchannels = 0;
 
 ops.Th =  [25 10]; %[25 10];
 % how important is the amplitude penalty (like in Kilosort1, 0 means not used, 10 is average, 50 is a lot) 
-ops.lam = 20;  
+ops.lam = 10;  
 
 % splitting a cluster at the end requires at least this much isolation for each sub-cluster (max = 1)
 ops.AUCsplit = 0.9; 
@@ -97,7 +97,7 @@ ops.ThPre = 8;
 
 %% danger, changing these settings can lead to fatal errors
 % options for determining PCs
-ops.spkTh           = -6;      % spike threshold in standard deviations (-6)
+ops.spkTh           = -5;      % spike threshold in standard deviations (-6)
 ops.reorder         = 1;       % whether to reorder batches for drift correction. 
 ops.nskip           = 25;  % how many batches to skip for determining spike PCs
 
