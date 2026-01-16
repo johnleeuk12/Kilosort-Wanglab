@@ -4,7 +4,7 @@ function make_HarrisChannelMap(fpath)
 % function make_HarrisChannelMap()
 % create a channel Map file for simulated data (eMouse)
 
-Nchannels = 32;
+Nchannels = 100;
 
 
 
@@ -16,10 +16,10 @@ Nchannels = 32;
 % file for the first channel. chanMap(1:2) = [33 34] in my case, which happen to
 % be dead channels. 
 
-chanMap = [ 3 2 29 32 5 1 27 4 31 30 7 13 25 6 19 28 ...
-    9 15 23 8 17 26 11 14 21 12 20 22 10 16 24 18];
+% chanMap = [ 3 2 29 32 5 1 27 4 31 30 7 13 25 6 19 28 ...
+%     9 15 23 8 17 26 11 14 21 12 20 22 10 16 24 18];
 
-
+chanMap = [1:100];
 
 
 % the first thing Kilosort does is reorder the data with data = data(chanMap, :).
@@ -27,6 +27,7 @@ chanMap = [ 3 2 29 32 5 1 27 4 31 30 7 13 25 6 19 28 ...
 % meaning not dead or used for non-ephys data
 
 connected = true(Nchannels, 1);
+connected(97:100) = false;
 % connected(find(chanMap == 21)) = false;
 % connected(find(chanMap == 63)) = false;
 % connected(find(chanMap == 15)) = false;
@@ -43,15 +44,18 @@ connected = true(Nchannels, 1);
 % I will take this information from the specifications of the probe. These
 % are in um here, but the absolute scaling doesn't really matter in the
 % algorithm. 
+% 
+% xcoords   = repmat([1;2;3],(Nchannels-2)/3,1);
+% xcoords   = [2;xcoords;2]*300;
+% 
+% ycoords   = repmat(1:(Nchannels-2)/3, 3, 1);
+% ycoords   = reshape(ycoords,[],1);
+% ycoords   = [0; ycoords; ((Nchannels-2)/3+1)];
+% ycoords   = ycoords*300;
+% ycoords   = flipud(ycoords);
 
-xcoords   = repmat([1;2;3],(Nchannels-2)/3,1);
-xcoords   = [2;xcoords;2]*50;
-
-ycoords   = repmat(1:(Nchannels-2)/3, 3, 1);
-ycoords   = reshape(ycoords,[],1);
-ycoords   = [0; ycoords; ((Nchannels-2)/3+1)];
-ycoords   = ycoords*50;
-ycoords   = flipud(ycoords);
+xcoords = ones(1,100)*10;
+ycoords = [1:100]*200;
 
 % Often, multi-shank probes or tetrodes will be organized into groups of
 % channels that cannot possibly share spikes with the rest of the probe. This helps

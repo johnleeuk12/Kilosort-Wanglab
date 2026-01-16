@@ -17,19 +17,19 @@ useGPU = 1; %else 1  % do you have a GPU? Kilosorting 1000sec of 32chan simulate
 % session_name = 
 
 % fpath = fullfile('D:\DATA\HPWT\HPWTjh2-220930-160047');
-fpath = fullfile('D:\DATA\Reversal Learning\MPM04\concat_0529\probeB');
+fpath = fullfile('D:\Neural Data\TS_260114');
 
 % filename = 'JHL_MCR-220801-164829_HPWTjh2-220930-160047';
 % filename = 'TDTsample';
 
-filename = 'continuous';
+filename = 'TS_20260114_raw1001.ns6';
 
 if ~exist(fpath, 'dir'); mkdir(fpath); end
 
 rootZ = fpath;
 
 
-addpath(genpath('D:\GitHub\Kilosort2')) % path to kilosort folder
+addpath(genpath('D:\GitHub\Kilosort2_JHL')) % path to kilosort folder
 
 addpath(genpath('D:\\GitHub\npy-matlab')) % path to npy-matlab scripts
 
@@ -39,13 +39,13 @@ pathToYourConfigFile = 'D:\\GitHub\Kilosort-Wanglab'; % take from Github folder 
 % run(fullfile(pathToYourConfigFile, 'Blackrock_config.m'))
 % run(fullfile(pathToYourConfigFile, 'TDT_config.m'))
 
-run(fullfile(pathToYourConfigFile, 'Harris_config2.m'))
+run(fullfile(pathToYourConfigFile, 'Blackrock_config.m'))
 
 ops.trange = [0 inf]; % time range to sort in sec
 ops.useGit = false;
 
 % ops.datatype = 'tev';
-ops.datatype = 'dat';
+ops.datatype = 'ns5';
 % ops.ephys_type = file_type;
 %%
 % convert to binary
